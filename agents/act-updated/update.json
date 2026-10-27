@@ -1,0 +1,1640 @@
+{
+    "formatVersion": "codebolt.llm.v2",
+    "input": [
+        {
+            "role": "system",
+            "content": "You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.\n\n## Communication\n\n- Always ensure **only relevant sections** (code snippets, tables, commands, or structured data) are formatted in valid Markdown with proper fencing\n- Avoid wrapping the entire message in a single code block\n- Use Markdown **only where semantically correct** (e.g., `inline code`, code fences, lists, tables)\n- ALWAYS use backticks to format file, directory, function, and class names\n- Use \\( and \\) for inline math, \\[ and \\] for block math\n- Optimize writing for clarity and skimmability\n- Ensure code snippets are properly formatted for markdown rendering\n- Do not add narration comments inside code\n- Refer to code changes as \"edits\" not \"patches\"\n- State assumptions and continue; don't stop for approval unless blocked\n\n## Status Updates\n\n**Definition**: A brief progress note (1-3 sentences) about what just happened, what you're about to do, blockers/risks if relevant.\n\n**Critical execution rule**: If you say you're about to do something, actually do it in the same turn (run the tool call right after).\n\n**Guidelines**:\n- Use correct tenses: \"I'll\" or \"Let me\" for future actions, past tense for past actions, present tense for current actions\n- Skip saying what just happened if there's no new information since your previous update\n- Check off completed TODOs before reporting progress\n- Before starting any new file or code edit, reconcile the todo list\n- If you decide to skip a task, explicitly state a one-line justification and mark the task as cancelled\n- Reference todo task names (not IDs); never reprint the full list\n- Don't mention updating the todo list\n- Use backticks when mentioning files, directories, functions, etc (e.g., `app/components/Card.tsx`)\n- Only pause if you truly cannot proceed without the user or a tool result\n- Don't add headings like \"Update:\"\n\n**Example**:\n> \"Let me search for where the load balancer is configured.\"\n> \"I found the load balancer configuration. Now I'll update the number of replicas to 3.\"\n> \"My edit introduced a linter error. Let me fix that.\"\n\n## Summary\n\nAt the end of your turn, provide a summary:\n\n- Summarize any changes at a high-level and their impact\n- If the user asked for info, summarize the answer but don't explain your search process\n- If the user asked a basic query, skip the summary entirely\n- Use concise bullet points for lists; short paragraphs if needed\n- Use markdown if you need headings\n- Don't repeat the plan\n- Include short code fences only when essential; never fence the entire message\n- Use backticks when mentioning files, directories, functions, etc\n- Keep the summary short, non-repetitive, and high-signal\n- The user can view full code changes in the editor, so only flag specific code changes that are very important\n- Don't add headings like \"Summary:\" or \"Update:\"\n\n## Completion\n\n**CRITICAL — You MUST verify your work before calling `attempt_completion`. Never mark a task as done without first confirming there are no errors.**\n\nWhen all goal tasks are done, follow this mandatory sequence:\n\n### Step 1: Detect the project stack\n- Look at the project files to identify the language/framework (e.g., `package.json` → Node/JS/TS, `requirements.txt`/`pyproject.toml` → Python, `go.mod` → Go, `Cargo.toml` → Rust, `pom.xml`/`build.gradle` → Java, etc.)\n\n### Step 2: Run verification checks (use the terminal)\nRun **all applicable** checks for the detected stack. Skip a check only if the project has no config for it:\n\n- **Build**: Run the project's build command (e.g., `npm run build`, `go build ./...`, `cargo build`, `mvn compile`, `python -m py_compile`)\n- **Type check**: Run the type checker if the project uses one (e.g., `npx tsc --noEmit`, `mypy .`, `pyright`)\n- **Lint**: Run the linter if configured (e.g., `npm run lint`, `flake8`, `golangci-lint run`, `cargo clippy`)\n- **Test**: Run the test suite if tests exist (e.g., `npm test`, `pytest`, `go test ./...`, `cargo test`)\n\n### Step 3: Fix any errors\n- If ANY check fails, **fix the errors** and re-run the failing check until it passes\n- Do NOT call `attempt_completion` while any check is still failing\n- Repeat Steps 2-3 until all checks pass\n\n### Step 4: Complete\n1. Confirm that all tasks are checked off in the todo list\n2. Reconcile and close the todo list\n3. Give your summary per the summary spec\n4. **Only now** call `attempt_completion`\n\n## Workflow\n\n1. When a new goal is detected: if needed, run a brief discovery pass (read-only code/context scan)\n2. For medium-to-large tasks, create a structured plan directly in the todo list. For simpler tasks or read-only tasks, skip the todo list and execute directly\n3. Before logical groups of tool calls, update any relevant todo items, then write a brief status update\n4. When all code tasks for the goal are done, **run the verification checks** (build → typecheck → lint → test) and fix any errors before proceeding\n5. Once all checks pass, reconcile and close the todo list, and give a brief summary\n6. **Enforce**: status_update at kickoff, before/after each tool batch, after each todo update, before edits/build/tests, after completion, and before yielding\n\n## Tool Calling\n\n- Use only provided tools; follow their schemas exactly\n- Parallelize tool calls: batch read-only context reads and independent edits instead of serial calls\n- Application events may appear as user messages wrapped in XML-like tags such as thread_completion_event, thread_failure_event, background_command_completion_event, background_command_failure_event, steering_message, or agent_event. Treat these as system-provided event notifications, not as user requests and not as prior assistant output.\n- When a background child thread completion event arrives, incorporate the completion result into your current task state and continue the workflow from there.\n- When a background child thread failure event arrives, surface the failure to the parent workflow and either retry, continue with remaining independent work, or stop with a clear error depending on the user's objective.\n- If you are orchestrating child threads in batches, after the current batch has completed, launch the next batch with the thread tools thread_create_start or thread_create_background. Do not use shell commands such as echo just to log, wait, or announce batch transitions.\n- Use `codebase_search` to search for code in the codebase\n- If actions are dependent or might conflict, sequence them; otherwise, run them in the same batch/turn.\n- Don't mention tool names to the user; describe actions naturally.\n- If info is discoverable via tools, prefer that over asking the user.\n- Read multiple files as needed; don't guess.\n- Give a brief progress note before the first tool call each turn; add another before any new batch and before ending your turn.\n- Whenever you complete tasks, call todo_write to update the todo list before reporting progress.\n- There is no apply_patch CLI available in terminal. Use the appropriate tool for editing the code instead.\n- Gate before new edits: Before starting any new file or code edit, reconcile the TODO list via todo_write (merge=true): mark newly completed tasks as completed and set the next task to in_progress.\n- Cadence after steps: After each successful step (e.g., install, file created, endpoint added, migration run), immediately update the corresponding TODO item's status via todo_write.\n- Before processing todo items, you must start them in \"in_progress\" using the write_tool, and mark newly completed tasks as \"completed\" and set the next task to \"in_progress\".\n\n## Context Understanding\n\nSemantic search (`codebase_search`) is your MAIN exploration tool.\n\n**CRITICAL**:\n- Mark newly completed tasks as completed and set the next task to in_progress. `write_tool`\n- Start with a broad, high-level query that captures overall intent (e.g., \"authentication flow\" or \"error-handling policy\"), not low-level terms\n- Break multi-part questions into focused sub-queries\n- **MANDATORY**: Run multiple `codebase_search` searches with different wording; first-pass results often miss key details\n- Keep searching new areas until you're CONFIDENT nothing important remains\n- If you've performed an edit that may partially fulfill the query but you're not confident, gather more information before ending your turn\n- Bias towards not asking the user for help if you can find the answer yourself\n\n## Maximize Parallel Tool Calls\n\n**CRITICAL INSTRUCTION**: For maximum efficiency, invoke all relevant tools concurrently with `multi_tool_use.parallel` rather than sequentially. Prioritize calling tools in parallel whenever possible.\n\n**Examples**:\n- When reading 3 files, run 3 tool calls in parallel to read all 3 files at once\n- When running multiple read-only commands like `read_file`, `grep_search` or `codebase_search`, always run all commands in parallel\n- Limit to 3-5 tool calls at a time or they might time out\n\n**Cases that SHOULD use parallel tool calls**:\n- Searching for different patterns (imports, usage, definitions)\n- Multiple grep searches with different regex patterns\n- Reading multiple files or searching different directories\n- Combining `codebase_search` with grep for comprehensive results\n- Any information gathering where you know upfront what you're looking for\n\nBefore making tool calls, briefly consider: What information do I need to fully answer this question? Then execute all those searches together rather than waiting for each result before planning the next search.\n\n**DEFAULT TO PARALLEL**: Unless you have a specific reason why operations MUST be sequential (output of A required for input of B), always execute multiple tools simultaneously. Parallel tool execution can be 3-5x faster than sequential calls.\n\n## Searching Code\n\n- **ALWAYS prefer** using `codebase_search` over grep for searching for code because it is much faster for efficient codebase exploration\n- Use grep to search for exact strings, symbols, or other patterns\n\n## Making Code Changes\n\nWhen making code changes, **NEVER output code to the USER**, unless requested. Instead use one of the code edit tools to implement the change.\n\n**EXTREMELY important** that your generated code can be run immediately:\n\n- Add all necessary import statements, dependencies, and endpoints required to run the code\n- If creating the codebase from scratch, create an appropriate dependency management file (e.g., `requirements.txt`) with package versions and a helpful README\n- If building a web app from scratch, give it a beautiful and modern UI, imbued with best UX practices\n- **NEVER generate** an extremely long hash or any non-textual code, such as binary\n\n- Every time you write code, follow the code style guidelines\n\n## Code Style\n\n**IMPORTANT**: The code you write will be reviewed by humans; optimize for clarity and readability. Write **HIGH-VERBOSITY code**, even if you have been asked to communicate concisely with the user.\n\n### Naming\n\n- Avoid short variable/symbol names. Never use 1-2 character names\n- Functions should be verbs/verb-phrases, variables should be nouns/noun-phrases\n- Use meaningful variable names as described in Martin's \"Clean Code\":\n  - Descriptive enough that comments are generally not needed\n  - Prefer full words over abbreviations\n  - Use variables to capture the meaning of complex conditions or operations\n\n**Examples (Bad → Good)**:\n- `genYmdStr` → `generateDateString`\n- `n` → `numSuccessfulRequests`\n- `[key, value] of map` → `[userId, user] of userIdToUser`\n- `resMs` → `fetchUserDataResponseMs`\n\n### Static Typed Languages\n\n- Explicitly annotate function signatures and exported/public APIs\n- Don't annotate trivially inferred variables\n- Avoid unsafe typecasts or types like `any`\n\n### Control Flow\n\n- Use guard clauses/early returns\n- Handle error and edge cases first\n- Avoid unnecessary try/catch blocks\n- **NEVER catch errors** without meaningful handling\n- Avoid deep nest\n...[truncated 5560 chars for debug payload]"
+        },
+        {
+            "role": "system",
+            "content": "You are an AI coding assistant, powered by GPT-5, operating in CodeboltAi. You pair program with users to solve coding tasks.\n\n## Communication\n\n- Always ensure **only relevant sections** (code snippets, tables, commands, or structured data) are formatted in valid Markdown with proper fencing\n- Avoid wrapping the entire message in a single code block\n- Use Markdown **only where semantically correct** (e.g., `inline code`, code fences, lists, tables)\n- ALWAYS use backticks to format file, directory, function, and class names\n- Use \\( and \\) for inline math, \\[ and \\] for block math\n- Optimize writing for clarity and skimmability\n- Ensure code snippets are properly formatted for markdown rendering\n- Do not add narration comments inside code\n- Refer to code changes as \"edits\" not \"patches\"\n- State assumptions and continue; don't stop for approval unless blocked\n\n## Status Updates\n\n**Definition**: A brief progress note (1-3 sentences) about what just happened, what you're about to do, blockers/risks if relevant.\n\n**Critical execution rule**: If you say you're about to do something, actually do it in the same turn (run the tool call right after).\n\n**Guidelines**:\n- Use correct tenses: \"I'll\" or \"Let me\" for future actions, past tense for past actions, present tense for current actions\n- Skip saying what just happened if there's no new information since your previous update\n- Check off completed TODOs before reporting progress\n- Before starting any new file or code edit, reconcile the todo list\n- If you decide to skip a task, explicitly state a one-line justification and mark the task as cancelled\n- Reference todo task names (not IDs); never reprint the full list\n- Don't mention updating the todo list\n- Use backticks when mentioning files, directories, functions, etc (e.g., `app/components/Card.tsx`)\n- Only pause if you truly cannot proceed without the user or a tool result\n- Don't add headings like \"Update:\"\n\n**Example**:\n> \"Let me search for where the load balancer is configured.\"\n> \"I found the load balancer configuration. Now I'll update the number of replicas to 3.\"\n> \"My edit introduced a linter error. Let me fix that.\"\n\n## Summary\n\nAt the end of your turn, provide a summary:\n\n- Summarize any changes at a high-level and their impact\n- If the user asked for info, summarize the answer but don't explain your search process\n- If the user asked a basic query, skip the summary entirely\n- Use concise bullet points for lists; short paragraphs if needed\n- Use markdown if you need headings\n- Don't repeat the plan\n- Include short code fences only when essential; never fence the entire message\n- Use backticks when mentioning files, directories, functions, etc\n- Keep the summary short, non-repetitive, and high-signal\n- The user can view full code changes in the editor, so only flag specific code changes that are very important\n- Don't add headings like \"Summary:\" or \"Update:\"\n\n## Completion\n\n**CRITICAL — You MUST verify your work before calling `attempt_completion`. Never mark a task as done without first confirming there are no errors.**\n\nWhen all goal tasks are done, follow this mandatory sequence:\n\n### Step 1: Detect the project stack\n- Look at the project files to identify the language/framework (e.g., `package.json` → Node/JS/TS, `requirements.txt`/`pyproject.toml` → Python, `go.mod` → Go, `Cargo.toml` → Rust, `pom.xml`/`build.gradle` → Java, etc.)\n\n### Step 2: Run verification checks (use the terminal)\nRun **all applicable** checks for the detected stack. Skip a check only if the project has no config for it:\n\n- **Build**: Run the project's build command (e.g., `npm run build`, `go build ./...`, `cargo build`, `mvn compile`, `python -m py_compile`)\n- **Type check**: Run the type checker if the project uses one (e.g., `npx tsc --noEmit`, `mypy .`, `pyright`)\n- **Lint**: Run the linter if configured (e.g., `npm run lint`, `flake8`, `golangci-lint run`, `cargo clippy`)\n- **Test**: Run the test suite if tests exist (e.g., `npm test`, `pytest`, `go test ./...`, `cargo test`)\n\n### Step 3: Fix any errors\n- If ANY check fails, **fix the errors** and re-run the failing check until it passes\n- Do NOT call `attempt_completion` while any check is still failing\n- Repeat Steps 2-3 until all checks pass\n\n### Step 4: Complete\n1. Confirm that all tasks are checked off in the todo list\n2. Reconcile and close the todo list\n3. Give your summary per the summary spec\n4. **Only now** call `attempt_completion`\n\n## Workflow\n\n1. When a new goal is detected: if needed, run a brief discovery pass (read-only code/context scan)\n2. For medium-to-large tasks, create a structured plan directly in the todo list. For simpler tasks or read-only tasks, skip the todo list and execute directly\n3. Before logical groups of tool calls, update any relevant todo items, then write a brief status update\n4. When all code tasks for the goal are done, **run the verification checks** (build → typecheck → lint → test) and fix any errors before proceeding\n5. Once all checks pass, reconcile and close the todo list, and give a brief summary\n6. **Enforce**: status_update at kickoff, before/after each tool batch, after each todo update, before edits/build/tests, after completion, and before yielding\n\n## Tool Calling\n\n- Use only provided tools; follow their schemas exactly\n- Parallelize tool calls: batch read-only context reads and independent edits instead of serial calls\n- Application events may appear as user messages wrapped in XML-like tags such as thread_completion_event, thread_failure_event, background_command_completion_event, background_command_failure_event, steering_message, or agent_event. Treat these as system-provided event notifications, not as user requests and not as prior assistant output.\n- When a background child thread completion event arrives, incorporate the completion result into your current task state and continue the workflow from there.\n- When a background child thread failure event arrives, surface the failure to the parent workflow and either retry, continue with remaining independent work, or stop with a clear error depending on the user's objective.\n- If you are orchestrating child threads in batches, after the current batch has completed, launch the next batch with the thread tools thread_create_start or thread_create_background. Do not use shell commands such as echo just to log, wait, or announce batch transitions.\n- Use `codebase_search` to search for code in the codebase\n- If actions are dependent or might conflict, sequence them; otherwise, run them in the same batch/turn.\n- Don't mention tool names to the user; describe actions naturally.\n- If info is discoverable via tools, prefer that over asking the user.\n- Read multiple files as needed; don't guess.\n- Give a brief progress note before the first tool call each turn; add another before any new batch and before ending your turn.\n- Whenever you complete tasks, call todo_write to update the todo list before reporting progress.\n- There is no apply_patch CLI available in terminal. Use the appropriate tool for editing the code instead.\n- Gate before new edits: Before starting any new file or code edit, reconcile the TODO list via todo_write (merge=true): mark newly completed tasks as completed and set the next task to in_progress.\n- Cadence after steps: After each successful step (e.g., install, file created, endpoint added, migration run), immediately update the corresponding TODO item's status via todo_write.\n- Before processing todo items, you must start them in \"in_progress\" using the write_tool, and mark newly completed tasks as \"completed\" and set the next task to \"in_progress\".\n\n## Context Understanding\n\nSemantic search (`codebase_search`) is your MAIN exploration tool.\n\n**CRITICAL**:\n- Mark newly completed tasks as completed and set the next task to in_progress. `write_tool`\n- Start with a broad, high-level query that captures overall intent (e.g., \"authentication flow\" or \"error-handling policy\"), not low-level terms\n- Break multi-part questions into focused sub-queries\n- **MANDATORY**: Run multiple `codebase_search` searches with different wording; first-pass results often miss key details\n- Keep searching new areas until you're CONFIDENT nothing important remains\n- If you've performed an edit that may partially fulfill the query but you're not confident, gather more information before ending your turn\n- Bias towards not asking the user for help if you can find the answer yourself\n\n## Maximize Parallel Tool Calls\n\n**CRITICAL INSTRUCTION**: For maximum efficiency, invoke all relevant tools concurrently with `multi_tool_use.parallel` rather than sequentially. Prioritize calling tools in parallel whenever possible.\n\n**Examples**:\n- When reading 3 files, run 3 tool calls in parallel to read all 3 files at once\n- When running multiple read-only commands like `read_file`, `grep_search` or `codebase_search`, always run all commands in parallel\n- Limit to 3-5 tool calls at a time or they might time out\n\n**Cases that SHOULD use parallel tool calls**:\n- Searching for different patterns (imports, usage, definitions)\n- Multiple grep searches with different regex patterns\n- Reading multiple files or searching different directories\n- Combining `codebase_search` with grep for comprehensive results\n- Any information gathering where you know upfront what you're looking for\n\nBefore making tool calls, briefly consider: What information do I need to fully answer this question? Then execute all those searches together rather than waiting for each result before planning the next search.\n\n**DEFAULT TO PARALLEL**: Unless you have a specific reason why operations MUST be sequential (output of A required for input of B), always execute multiple tools simultaneously. Parallel tool execution can be 3-5x faster than sequential calls.\n\n## Searching Code\n\n- **ALWAYS prefer** using `codebase_search` over grep for searching for code because it is much faster for efficient codebase exploration\n- Use grep to search for exact strings, symbols, or other patterns\n\n## Making Code Changes\n\nWhen making code changes, **NEVER output code to the USER**, unless requested. Instead use one of the code edit tools to implement the change.\n\n**EXTREMELY important** that your generated code can be run immediately:\n\n- Add all necessary import statements, dependencies, and endpoints required to run the code\n- If creating the codebase from scratch, create an appropriate dependency management file (e.g., `requirements.txt`) with package versions and a helpful README\n- If building a web app from scratch, give it a beautiful and modern UI, imbued with best UX practices\n- **NEVER generate** an extremely long hash or any non-textual code, such as binary\n\n- Every time you write code, follow the code style guidelines\n\n## Code Style\n\n**IMPORTANT**: The code you write will be reviewed by humans; optimize for clarity and readability. Write **HIGH-VERBOSITY code**, even if you have been asked to communicate concisely with the user.\n\n### Naming\n\n- Avoid short variable/symbol names. Never use 1-2 character names\n- Functions should be verbs/verb-phrases, variables should be nouns/noun-phrases\n- Use meaningful variable names as described in Martin's \"Clean Code\":\n  - Descriptive enough that comments are generally not needed\n  - Prefer full words over abbreviations\n  - Use variables to capture the meaning of complex conditions or operations\n\n**Examples (Bad → Good)**:\n- `genYmdStr` → `generateDateString`\n- `n` → `numSuccessfulRequests`\n- `[key, value] of map` → `[userId, user] of userIdToUser`\n- `resMs` → `fetchUserDataResponseMs`\n\n### Static Typed Languages\n\n- Explicitly annotate function signatures and exported/public APIs\n- Don't annotate trivially inferred variables\n- Avoid unsafe typecasts or types like `any`\n\n### Control Flow\n\n- Use guard clauses/early returns\n- Handle error and edge cases first\n- Avoid unnecessary try/catch blocks\n- **NEVER catch errors** without meaningful handling\n- Avoid deep nest\n...[truncated 5560 chars for debug payload]"
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "This is the CodeBolt AI Agent. Setting up context for our chat.\nToday's date is Monday, 17 August 2026 (formatted according to the user's locale).\nOperating system: undefined\nEffective project directory for this task: /Users/ravirawat/codebolt-projects/objective-aquamarine\n\nFiles in current directory: .agents, .codebolt, .codeboltconfig.yaml, .git, .gitignore, index.js\nAsync task policy: long-running commands and child threads are tracked as async tasks with execution_mode foreground_scoped, auto_scoped, background_scoped, or background_detached. Scoped tasks are owned by the current agent run and are stopped if the user force-stops the agent. Before completing, use async_task_list to inspect unresolved scoped work and async_task_control to wait, stop, or explicitly detach each running task. background_detached tasks survive user force-stop and natural completion, so detach only intentional background services such as dev servers.\n\nI'm currently working in the effective project directory: /Users/ravirawat/codebolt-projects/objective-aquamarine\nHere is the folder structure of the current working directories:\n\nShowing up to 200 items (files + folders). Folders or files indicated with ... contain more items not shown, were ignored, or the display limit (200 items) was reached.\n\n/Users/ravirawat/codebolt-projects/objective-aquamarine/\n├───.gitignore\n├───index.js\n├───.agents/...\n├───.codebolt/...\n└───.git/..."
+        },
+        {
+            "role": "user",
+            "content": "can you start child environment using  tool create that environment using\nagentfs-provider\nprovider then  assign change hello to greeting function when child finish it task then close that child env using  tool"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "Let me find the available environment and child-task tools, then I’ll use the `agentfs-provider` workflow to delegate the `hello` to `greeting` change.Let me find the available environment and child-task tools, then I’ll use the `agentfs-provider` workflow to delegate the `hello` to `greeting` change."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_2NSMJqrHTBu5SaaecMrMAIiE",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"mode\":\"list\",\"pattern\":\"*env*\",\"limit\":20,\"includeDescriptions\":true,\"includeResources\":true,\"explanation\":\"I'll inspect available environment-related tools so I can create and close the requested child environment.\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_2NSMJqrHTBu5SaaecMrMAIiE",
+            "output": "Matching CodeBolt callable tools (20 shown of 20):\n\n- environment_computer_use [environment/execute] - Observe and control a remote environment desktop through its environment provider. Check capabilities before acting.\n- environment_create [environment/execute] - Creates a new environment with the specified name and provider. The provider must be from the available local or runner providers list.\n- environment_delete [environment/delete] - Deletes an environment by ID.\n- environment_get [environment/read] - Gets an environment by its ID.\n- environment_get_local_providers [environment/read] - Gets all available local environment providers.\n- environment_get_runner_providers [environment/read] - Gets available runner environment providers.\n- environment_get_running_providers [environment/read] - Gets all currently running environment providers.\n- environment_list [environment/read] - Lists all environments.\n- environment_merge_and_close [environment/delete] - Creates a retained review merge request from a running environment, then closes the environment without merging the request.\n- environment_restart [environment/execute] - Restarts an environment by ID (stops then starts the provider).\n- environment_send_message [environment/execute] - Sends a message to an environment provider.\n- environment_start [environment/execute] - Starts an environment by ID. Waits until the provider process is fully ready before returning.\n- environment_start_agent [environment/execute] - Starts an agent in a specified environment. Sends the task to the environment provider which launches and runs the agent.\n- environment_statistics [environment/read] - Gets environment statistics including counts and health information.\n- environment_status [environment/read] - Gets the status of an environment including state, health, and error information.\n- environment_stop [environment/execute] - Stops an environment by ID.\n- environment_update [environment/edit] - Updates an existing environment by ID.\n- file_intent_get_blocked [file/read] - Gets all files that are hard-locked (level 4 intents) in an environment. These files cannot be modified by other agents.\n- file_intent_get_files_with_intents [file/read] - Gets all files that have active intents in an environment, showing which files are currently reserved and by whom.\n- file_intent_list [file/read] - Lists file update intents with optional filters for environment, status, agent, file path, and date range.\n\nUse mode=\"details\" for callable schemas for these tools, or mode=\"get\" with an exact toolName.\n\nMatching CodeBolt resources (2 shown of 2):\n\n- agentfs-child-environment [skill/skill] - Run every delegated child-agent coding task in an isolated CodeBolt child environment backed by the agentfs-provider, then have the parent close and merge that environment after the child finishes. Use whenever assigning, delegating, or handing implementation work to a child agent in the agentfs-test project, including parallel child tasks and follow-up work.\n- sandbox-sdk [skill/skill] - Build sandboxed applications for secure code execution. Load when building AI code execution, code interpreters, CI/CD systems, interactive dev environments, or executing untrusted code. Covers Sandbox SDK lifecycle, commands, files, code interpreter, and preview URLs. Biases towards retrieval from Cloudflare docs over pre-trained knowledge.",
+            "status": "completed"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "I found the environment lifecycle tools and the child-environment skill. I’ll load the exact schemas for creating, starting, delegating, and closing the environment now.I found the environment lifecycle tools and the child-environment skill. I’ll load the exact schemas for creating, starting, delegating, and closing the environment now."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_GFPqkgSrUG4vF8GxDSIn0GKP",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"mode\":\"details\",\"pattern\":\"environment_{create,start,start_agent,status,merge_and_close,delete,list}\",\"outputType\":\"tool_search_output\",\"limit\":10,\"includeResources\":true,\"explanation\":\"I'll load callable schemas for the environment lifecycle operations needed to delegate the edit and close the child environment.\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_GFPqkgSrUG4vF8GxDSIn0GKP",
+            "output": "No tools matched mode=\"details\" category=\"\" pattern=\"environment_{create,start,start_agent,status,merge_and_close,delete,list}\" toolName=\"\".",
+            "status": "completed"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "The grouped pattern didn’t match, so I’ll fetch the relevant environment tool schemas individually by category/pattern.The grouped pattern didn’t match, so I’ll fetch the relevant environment tool schemas individually by category/pattern.The grouped pattern didn’t match, so I’ll fetch the relevant environment tool schemas individually by category/pattern.The grouped pattern didn’t match, so I’ll fetch the relevant environment tool schemas individually by category/pattern."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_bz2jFXAnmJfCWIwhUrpE0p0p",
+            "name": "get_available_tools_manifest",
+            "arguments": "{\"mode\":\"details\",\"category\":\"environment\",\"outputType\":\"tool_search_output\",\"limit\":30,\"includeResources\":true,\"explanation\":\"I'll retrieve the environment tool schemas from the environment category so I can call them correctly.\"}"
+        },
+        {
+            "type": "tool_search_output",
+            "execution": "client",
+            "status": "completed",
+            "tools": [
+                {
+                    "type": "function",
+                    "name": "environment_computer_use",
+                    "description": "Observe and control a remote environment desktop through its environment provider. Check capabilities before acting.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "environmentId": {
+                                "type": "string",
+                                "description": "Environment that will fulfill the computer-use request."
+                            },
+                            "operation": {
+                                "type": "string",
+                                "enum": [
+                                    "getStatus",
+                                    "getCapabilities",
+                                    "startSession",
+                                    "endSession",
+                                    "observe",
+                                    "move",
+                                    "click",
+                                    "drag",
+                                    "scroll",
+                                    "typeText",
+                                    "pressKeys",
+                                    "readClipboard",
+                                    "writeClipboard",
+                                    "listApplications",
+                                    "launchApplication",
+                                    "terminateApplication",
+                                    "listWindows",
+                                    "focusWindow",
+                                    "setWindowBounds",
+                                    "setElementValue",
+                                    "waitForState"
+                                ],
+                                "description": "Computer-use operation to execute."
+                            },
+                            "sessionId": {
+                                "type": "string",
+                                "description": "Stable session identifier. Reuse it across observations and actions."
+                            },
+                            "target": {
+                                "type": "object",
+                                "description": "Optional desktop, window, or snapshot-scoped semantic element target.",
+                                "properties": {
+                                    "kind": {
+                                        "type": "string",
+                                        "enum": [
+                                            "desktop",
+                                            "window",
+                                            "element"
+                                        ]
+                                    },
+                                    "displayId": {
+                                        "type": "string"
+                                    },
+                                    "applicationId": {
+                                        "type": "string"
+                                    },
+                                    "processId": {
+                                        "type": "number"
+                                    },
+                                    "windowId": {
+                                        "anyOf": [
+                                            {
+                                                "type": "string"
+                                            },
+                                            {
+                                                "type": "number"
+                                            }
+                                        ]
+                                    },
+                                    "snapshotId": {
+                                        "type": "string"
+                                    },
+                                    "elementToken": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "kind"
+                                ],
+                                "additionalProperties": false
+                            },
+                            "params": {
+                                "type": "object",
+                                "description": "Operation parameters such as point, from/to, text, keys, bounds, or conditions.",
+                                "additionalProperties": true
+                            },
+                            "explanation": {
+                                "type": "string",
+                                "description": "One sentence explanation of why computer use is needed."
+                            }
+                        },
+                        "required": [
+                            "environmentId",
+                            "operation"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_computer_use"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_create",
+                    "description": "Creates a new environment with the specified name and provider. The provider must be from the available local or runner providers list.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "The name of the environment to create.",
+                                "type": "string"
+                            },
+                            "description": {
+                                "description": "Optional description of the environment.",
+                                "type": "string"
+                            },
+                            "provider": {
+                                "description": "Provider configuration object. Must include at least a name or unique_id matching an available local or runner provider.",
+                                "type": "object"
+                            },
+                            "config": {
+                                "description": "Optional additional configuration.",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "provider"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_create"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_delete",
+                    "description": "Deletes an environment by ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to delete.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_delete"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_get",
+                    "description": "Gets an environment by its ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to retrieve.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_get"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_get_local_providers",
+                    "description": "Gets all available local environment providers.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_get_local_providers"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_get_runner_providers",
+                    "description": "Gets available runner environment providers.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_get_runner_providers"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_get_running_providers",
+                    "description": "Gets all currently running environment providers.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_get_running_providers"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_list",
+                    "description": "Lists all environments.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_list"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_merge_and_close",
+                    "description": "Creates a retained review merge request from a running environment, then closes the environment without merging the request.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explaining why the environment changes should be retained and the environment closed.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the running environment.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_merge_and_close"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_restart",
+                    "description": "Restarts an environment by ID (stops then starts the provider).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to restart.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_restart"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_send_message",
+                    "description": "Sends a message to an environment provider.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to send the message to.",
+                                "type": "string"
+                            },
+                            "message": {
+                                "description": "The message to send to the environment provider.",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "environmentId",
+                            "message"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_send_message"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_start",
+                    "description": "Starts an environment by ID. Waits until the provider process is fully ready before returning.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to start.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_start"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_start_agent",
+                    "description": "Starts an agent in a specified environment. Sends the task to the environment provider which launches and runs the agent.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to run the agent in.",
+                                "type": "string"
+                            },
+                            "agentId": {
+                                "description": "The ID of the agent to start. If not provided, uses the default agent.",
+                                "type": "string"
+                            },
+                            "task": {
+                                "description": "The task or instruction for the agent to execute.",
+                                "type": "string"
+                            },
+                            "threadId": {
+                                "description": "Optional thread ID for tracking conversation context.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId",
+                            "task"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_start_agent"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_statistics",
+                    "description": "Gets environment statistics including counts and health information.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_statistics"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_status",
+                    "description": "Gets the status of an environment including state, health, and error information.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to check status for.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_status"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_stop",
+                    "description": "Stops an environment by ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to stop.",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "environmentId"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_stop"
+                        }
+                    }
+                },
+                {
+                    "type": "function",
+                    "name": "environment_update",
+                    "description": "Updates an existing environment by ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "explanation": {
+                                "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                                "type": "string"
+                            },
+                            "environmentId": {
+                                "description": "The ID of the environment to update.",
+                                "type": "string"
+                            },
+                            "updateData": {
+                                "description": "The data to update on the environment.",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "environmentId",
+                            "updateData"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "kind": "codeboltTool",
+                    "route": {
+                        "mode": "runner",
+                        "runner": "codebolt_tool_execute",
+                        "fixed": {
+                            "toolName": "environment_update"
+                        }
+                    }
+                }
+            ],
+            "resources": [],
+            "call_id": "call_bz2jFXAnmJfCWIwhUrpE0p0p"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "I’ll inspect the available providers and the current file so the child task can be scoped precisely.I’ll inspect the available providers and the current file so the child task can be scoped precisely."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_j1O7URCYCkWRTWnGvOpw2lDX",
+            "name": "environment_get_local_providers",
+            "arguments": "{\"explanation\":\"I'll check local providers to find the agentfs-provider configuration for the child environment.\"}"
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_2mGo1Wg4lKJPBr7Rr2IJaQKh",
+            "name": "environment_get_runner_providers",
+            "arguments": "{\"explanation\":\"I'll check runner providers in case agentfs-provider is registered there.\"}"
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_87RncjDrZt0e3UfhVVjxskLc",
+            "name": "read_file",
+            "arguments": "{\"absolute_path\":\"/Users/ravirawat/codebolt-projects/objective-aquamarine/index.js\",\"explanation\":\"I'll read index.js so the delegated child task can target the hello function accurately.\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_j1O7URCYCkWRTWnGvOpw2lDX",
+            "output": "Found 2 local provider(s):\n- agentfs-provider (agentfs-provider)\n- e2b-remote-provider (e2b-remote-provider)\n",
+            "status": "completed"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_2mGo1Wg4lKJPBr7Rr2IJaQKh",
+            "output": "Found 0 runner provider(s):\n",
+            "status": "completed"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_87RncjDrZt0e3UfhVVjxskLc",
+            "output": "hello",
+            "status": "completed"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "`agentfs-provider` is available locally, and `index.js` currently contains `hello`. I’ll create and start a child environment, then assign the rename task to its agent.`agentfs-provider` is available locally, and `index.js` currently contains `hello`. I’ll create and start a child environment, then assign the rename task to its agent."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_Px2Jrug0r16vLktmhoUfzLTY",
+            "name": "environment_create",
+            "arguments": "{\"name\":\"rename-hello-to-greeting-child\",\"description\":\"Child environment for renaming hello to greeting in index.js\",\"provider\":{\"name\":\"agentfs-provider\"},\"config\":{\"workspacePath\":\"/Users/ravirawat/codebolt-projects/objective-aquamarine\"},\"explanation\":\"I'll create an isolated child environment with agentfs-provider to delegate the requested code edit.\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_Px2Jrug0r16vLktmhoUfzLTY",
+            "output": "Environment created successfully.\nName: rename-hello-to-greeting-child\nID: ae09e28d-2c86-4f19-9935-a3808a11a3b5\nEnvironment \"rename-hello-to-greeting-child\" created successfully",
+            "status": "completed"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "The child environment was created as `rename-hello-to-greeting-child`. I’ll start it now so the child agent can make the edit.The child environment was created as `rename-hello-to-greeting-child`. I’ll start it now so the child agent can make the edit."
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_BKCxflopi1wl5DlHR7PYZr9R",
+            "name": "environment_start",
+            "arguments": "{\"environmentId\":\"ae09e28d-2c86-4f19-9935-a3808a11a3b5\",\"explanation\":\"I'll start the child environment so its agent can run the requested edit task.\"}"
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_BKCxflopi1wl5DlHR7PYZr9R",
+            "output": "Environment ae09e28d-2c86-4f19-9935-a3808a11a3b5 started successfully. Environment \"rename-hello-to-greeting-child\" started successfully",
+            "status": "completed"
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": "The child environment is running. I’ll now assign the child agent to change `hello` to `greeting` and verify the edit in that environment.The child environment is running. I’ll now assign the child agent to change `hello` to `greeting` and verify the edit in that environment.The child environment is running. I’ll now assign the child agent to change `hello` to `greeting` and verify the edit in that environment.The child environment is running. I’ll now assign the child agent to change `hello` to `greeting` and verify the edit in that environment."
+        }
+    ],
+    "tools": [
+        {
+            "type": "function",
+            "function": {
+                "name": "attempt_completion",
+                "description": "Signals the completion of the task and returns the final result.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "result": {
+                            "type": "object",
+                            "description": "The final result of the task. The structure of this object should match the format specified in the system prompt.",
+                            "additionalProperties": true
+                        },
+                        "explanation": {
+                            "type": "string",
+                            "description": "Optional explanation of why the task is receiving this result."
+                        }
+                    },
+                    "required": [
+                        "result"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "cloud_codebolt_connectors--get_connector_details",
+                "description": "Get provider metadata, auth methods, connection status, and available actions for a connector service.",
+                "parameters": {
+                    "type": "object",
+                    "required": [
+                        "service"
+                    ],
+                    "properties": {
+                        "service": {
+                            "type": "string",
+                            "description": "Connector service id, for example clickup, airtable, or github_app."
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "cloud_codebolt_connectors--list_available_connectors",
+                "description": "List connector providers available in the CodeBolt OpenConnector catalog, including auth methods and connection status for the current workspace.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "search": {
+                            "type": "string",
+                            "description": "Optional case-insensitive provider search."
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Optional category filter."
+                        },
+                        "connectedOnly": {
+                            "type": "boolean",
+                            "description": "Only return connected providers."
+                        },
+                        "limit": {
+                            "type": "number",
+                            "description": "Maximum providers to return."
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "cloud_codebolt_connectors--list_installed_connectors",
+                "description": "List connector providers that are connected and enabled for the current workspace.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "type": "number",
+                            "description": "Maximum providers to return."
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "cloud_codebolt_connectors--request_connector_install",
+                "description": "Ask the user to configure a connector in the CodeBolt portal, then wait until they mark setup completed.",
+                "parameters": {
+                    "type": "object",
+                    "required": [
+                        "service"
+                    ],
+                    "properties": {
+                        "service": {
+                            "type": "string",
+                            "description": "Connector service id."
+                        },
+                        "connectionName": {
+                            "type": "string",
+                            "description": "Connection name. Defaults to default."
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "cloud_codebolt_connectors--search_available_connectors",
+                "description": "Search connector providers that are not necessarily installed, so an agent can identify a needed connector and ask the user to connect it.",
+                "parameters": {
+                    "type": "object",
+                    "required": [
+                        "query"
+                    ],
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Provider name, service id, category, or description search."
+                        },
+                        "limit": {
+                            "type": "number",
+                            "description": "Maximum providers to return."
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "edit",
+                "description": "Edits a file by replacing specified text with new text. The tool finds all occurrences of 'old_string' in the file and replaces them with 'new_string'. Use this for precise, targeted edits to existing files.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "absolute_path": {
+                            "description": "The absolute path to the file to edit (e.g., '/home/user/project/file.txt').",
+                            "type": "string"
+                        },
+                        "old_string": {
+                            "description": "The exact text to find in the file. Must be unique enough to identify the correct location. Include surrounding context if needed for uniqueness.",
+                            "type": "string"
+                        },
+                        "new_string": {
+                            "description": "The text to replace old_string with. Can be empty to delete the old text.",
+                            "type": "string"
+                        },
+                        "expected_occurrences": {
+                            "description": "Optional: The expected number of times old_string appears. If specified and the actual count differs, the edit will fail. Use this to ensure you are editing exactly what you intend.",
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "absolute_path",
+                        "old_string",
+                        "new_string"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "execute_command",
+                "description": "Execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task. You must tailor your command to the user's system and provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. For any interactive command, always pass the --yes flag to automatically confirm prompts.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.Use correct tenses: I'll or Let me for future actions, past tense for past actions, present tense for current actions",
+                            "type": "string"
+                        },
+                        "command": {
+                            "type": "string",
+                            "description": "The CLI command to execute. This should be valid for the current operating system. For multiline shell constructs, prefer `command_lines` so physical line breaks are preserved."
+                        },
+                        "command_lines": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Physical shell lines for a multiline command. Use this for heredocs, continued pipelines, quoted multiline scripts, and similar shell constructs."
+                        },
+                        "execution_mode": {
+                            "type": "string",
+                            "enum": [
+                                "foreground_scoped",
+                                "auto_scoped",
+                                "background_scoped",
+                                "background_detached"
+                            ],
+                            "description": "How to manage the command. foreground_scoped waits inline up to a bounded timeout then converts to background_scoped. auto_scoped waits briefly then converts to background_scoped. background_scoped returns a task id quickly and is stopped on user force-stop. background_detached is for intentional services/dev servers that should survive."
+                        },
+                        "wait_ms": {
+                            "type": "number",
+                            "description": "Milliseconds to wait before returning. foreground_scoped/auto_scoped convert to background_scoped if still running; background modes use this as a startup output capture window."
+                        }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_available_tools_manifest",
+                "description": "Browse the CodeBolt tool catalogue deterministically by category, wildcard pattern, or exact tool name. Use this before semantic tool_search when you need to discover what capability areas exist.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "mode": {
+                            "description": "categories: compact category catalogue. list: tool names/descriptions. details: callable schemas for filtered tools. get: callable schema for one exact tool.",
+                            "type": "string",
+                            "enum": [
+                                "categories",
+                                "list",
+                                "details",
+                                "get"
+                            ]
+                        },
+                        "outputType": {
+                            "description": "Optional output override. Defaults to text for categories/list and tool_search_output for details/get. Use text to inspect schemas without injecting tools.",
+                            "type": "string",
+                            "enum": [
+                                "text",
+                                "tool_search_output"
+                            ]
+                        },
+                        "category": {
+                            "description": "Optional exact category/namespace filter, for example \"mail\", \"browser\", \"project\", \"agent\", or \"inbox\".",
+                            "type": "string"
+                        },
+                        "pattern": {
+                            "description": "Optional wildcard or substring filter over tool names, display names, descriptions, and categories. Examples: \"file*\", \"*inbox*\", \"mail_*\".",
+                            "type": "string"
+                        },
+                        "toolName": {
+                            "description": "Exact tool name for mode \"get\", for example \"mail_fetch_inbox\".",
+                            "type": "string"
+                        },
+                        "limit": {
+                            "description": "Maximum number of categories/tools to return. Hard capped to keep context bounded.",
+                            "type": "number"
+                        },
+                        "includeDescriptions": {
+                            "description": "Whether list mode includes one-line tool descriptions. Defaults to true.",
+                            "type": "boolean"
+                        },
+                        "includeResources": {
+                            "description": "Whether to include resource-like capabilities such as ActionBlocks, agents, and skills. Defaults to false; callable tools still include registered, plugin, local, and MCP tools.",
+                            "type": "boolean"
+                        },
+                        "runtimeToolSetId": {
+                            "description": "Optional runtime tool-set id. Defaults to all registered runtime tool sets.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "glob",
+                "description": "Finds files matching a glob pattern. Use this to locate files by name pattern, extension, or path structure. Supports standard glob syntax like *, **, and {a,b} alternatives.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "pattern": {
+                            "description": "The glob pattern to match files (e.g., '**/*.ts', 'src/**/*.{js,jsx}', '**/test/*.spec.ts').",
+                            "type": "string"
+                        },
+                        "path": {
+                            "description": "Optional: The directory to search in. If not specified, searches from the project root.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "pattern"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "grep",
+                "description": "Searches for text patterns in files using grep-like functionality. Supports regex patterns and can filter by file types. Use this to find specific text, function definitions, imports, or any pattern across files.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "path": {
+                            "description": "The absolute path to search within. Can be a file or directory.",
+                            "type": "string"
+                        },
+                        "pattern": {
+                            "description": "The text pattern or regex to search for.",
+                            "type": "string"
+                        },
+                        "include": {
+                            "description": "Glob pattern for files to include (e.g., '*.ts', '*.{js,jsx,ts,tsx}').",
+                            "type": "string"
+                        },
+                        "exclude": {
+                            "description": "Glob pattern for files/directories to exclude (e.g., 'node_modules/**').",
+                            "type": "string"
+                        },
+                        "case_sensitive": {
+                            "description": "Whether the search is case sensitive. Defaults to true.",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "path",
+                        "pattern"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "description": "Reads and returns the content of a specified file. If the file is large, the content will be truncated. The tool's response will clearly indicate if truncation has occurred and will provide details on how to read more of the file using the 'offset' and 'limit' parameters. Handles text files and can read specific line ranges.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "absolute_path": {
+                            "description": "The absolute path to the file to read (e.g., '/home/user/project/file.txt'). Relative paths are not supported. You must provide an absolute path.",
+                            "type": "string"
+                        },
+                        "offset": {
+                            "description": "Optional: For text files, the 0-based line number to start reading from. Requires 'limit' to be set. Use for paginating through large files.",
+                            "type": "number"
+                        },
+                        "limit": {
+                            "description": "Optional: For text files, maximum number of lines to read. Use with 'offset' to paginate through large files. If omitted, reads the entire file (if feasible, up to a default limit).",
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "absolute_path"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "read_many_files",
+                "description": "Reads multiple files at once based on file paths, directory paths, or glob patterns. Efficiently retrieves content from multiple files in a single operation. Useful for reading related files, getting an overview of a directory's contents, or batch processing.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "paths": {
+                            "description": "An array of file paths, directory paths, or glob patterns to read (e.g., ['/path/to/file.ts', '/path/to/dir', '**/*.json']).",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "include": {
+                            "description": "Optional glob patterns for files to include (e.g., ['*.ts', '*.tsx']).",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "exclude": {
+                            "description": "Optional glob patterns for files/directories to exclude (e.g., ['*.test.ts', 'node_modules']).",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "recursive": {
+                            "description": "Whether to search recursively through subdirectories. Defaults to true.",
+                            "type": "boolean"
+                        },
+                        "use_default_excludes": {
+                            "description": "Whether to use default exclusion patterns (node_modules, .git, etc.). Defaults to true.",
+                            "type": "boolean"
+                        },
+                        "max_files": {
+                            "description": "Maximum number of files to read. Useful for limiting output size.",
+                            "type": "number"
+                        },
+                        "max_total_size": {
+                            "description": "Maximum total size of content to read in bytes.",
+                            "type": "number"
+                        },
+                        "include_metadata": {
+                            "description": "Whether to include file metadata (size, etc.) in output.",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [
+                        "paths"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "search_get_first_link",
+                "description": "Get first search result link",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Search query"
+                        },
+                        "explanation": {
+                            "type": "string",
+                            "description": "Explanation"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "search_web",
+                "description": "Perform a web search",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Search query"
+                        },
+                        "provider": {
+                            "type": "string",
+                            "description": "Optional web search provider id"
+                        },
+                        "count": {
+                            "type": "number",
+                            "description": "Maximum number of results"
+                        },
+                        "explanation": {
+                            "type": "string",
+                            "description": "Explanation"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "terminal_get_command_status",
+                "description": "Get durable status for a managed terminal command, including final exit state when available.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "process_id": {
+                            "type": "number",
+                            "description": "Process ID returned by execute_command."
+                        },
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "process_id"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "terminal_list_commands",
+                "description": "List currently running managed terminal commands.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "terminal_read_command_output",
+                "description": "Read captured output for a managed terminal command.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "process_id": {
+                            "type": "number",
+                            "description": "Process ID returned by execute_command."
+                        },
+                        "lines": {
+                            "type": "number",
+                            "description": "Optional number of trailing lines to return."
+                        },
+                        "tail_bytes": {
+                            "type": "number",
+                            "description": "Optional number of trailing bytes to inspect."
+                        },
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "process_id"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "terminal_stop_command",
+                "description": "Stop a managed terminal command by process ID.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "process_id": {
+                            "type": "number",
+                            "description": "Process ID returned by execute_command."
+                        },
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "process_id"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "terminal_tui",
+                "description": "Controls terminal user interfaces through a headless screen model. Supports run, attach, output, screen, type, write, press, resize, search, region, cursor, wait, wheel, sessions_list, sessions_switch, kill, and cleanup.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "action": {
+                            "description": "TUI action name. Examples: run, attach, screen, type, press, wait, sessions_list, kill.",
+                            "type": "string"
+                        },
+                        "params": {
+                            "description": "Action-specific parameters. For run use command, args, cwd, env, visible, sessionId, terminalId, cols, rows.",
+                            "type": "object"
+                        }
+                    },
+                    "required": [
+                        "action"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "terminal_wait_command",
+                "description": "Wait for a managed terminal command to finish, fail, or stop.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "process_id": {
+                            "type": "number",
+                            "description": "Process ID returned by execute_command."
+                        },
+                        "timeout_ms": {
+                            "type": "number",
+                            "description": "Maximum time to wait in milliseconds."
+                        },
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "process_id"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "tool_search",
+                "description": "Searches for available tools by name, description, or functionality using full-text search. Use this to discover which tools are available for a given task.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "query": {
+                            "description": "The search query to find relevant tools (e.g. \"create environment\", \"read file\", \"git commit\").",
+                            "type": "string"
+                        },
+                        "limit": {
+                            "description": "Maximum number of results to return (default: 10).",
+                            "type": "number"
+                        },
+                        "kind": {
+                            "description": "Filter results by exact tool action kind, not namespace: \"read\", \"edit\", \"delete\", \"execute\", \"search\", \"fetch\", \"other\". Use category for browser/git/context/etc.",
+                            "type": "string"
+                        },
+                        "category": {
+                            "description": "Filter results by exact tool namespace/category, such as \"browser\" for browser_* tools or \"git\" for git_* tools.",
+                            "type": "string"
+                        },
+                        "searchScope": {
+                            "description": "Search scope mode. Defaults to \"tools\". Use \"tools+resources\" to include ActionBlocks, agents, capabilities, and skills as resources, or use a narrower resource scope.",
+                            "type": "string",
+                            "enum": [
+                                "tools",
+                                "tools+resources",
+                                "tools+actionBlock",
+                                "tools+agent",
+                                "tools+capability",
+                                "tools+skill"
+                            ]
+                        },
+                        "runtimeToolSetId": {
+                            "description": "Optional runtime tool-set id. Defaults to all registered runtime tool sets.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "web_fetch",
+                "description": "Fetch a specific URL and return readable text content. Use this when the user provides a URL or after another tool gives you a source URL.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "type": "string",
+                            "description": "One sentence explanation of why this URL is being fetched."
+                        },
+                        "url": {
+                            "type": "string",
+                            "description": "The http or https URL to fetch."
+                        },
+                        "prompt": {
+                            "type": "string",
+                            "description": "The prompt to run on the fetched content."
+                        },
+                        "summarize_by_llm": {
+                            "type": "boolean",
+                            "description": "Controls secondary LLM processing. Defaults to true when prompt is present; set false to return raw fetched content."
+                        },
+                        "max_chars": {
+                            "type": "number",
+                            "description": "Maximum number of content characters to return. Defaults to 100000."
+                        },
+                        "timeout_ms": {
+                            "type": "number",
+                            "description": "Request timeout in milliseconds. Defaults to 60000."
+                        },
+                        "allow_private_network": {
+                            "type": "boolean",
+                            "description": "Allow fetching localhost or private network URLs. Defaults to false."
+                        },
+                        "follow_redirects": {
+                            "type": "boolean",
+                            "description": "Follow same-host redirects. Cross-host redirects are returned for explicit follow-up."
+                        },
+                        "upgrade_http": {
+                            "type": "boolean",
+                            "description": "Upgrade http URLs to https before fetching. Defaults to true."
+                        }
+                    },
+                    "required": [
+                        "url",
+                        "prompt"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "write_file",
+                "description": "Creates a new file or overwrites an existing file with the provided content.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "explanation": {
+                            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+                            "type": "string"
+                        },
+                        "absolute_path": {
+                            "description": "The absolute path to the file to write (e.g., '/home/user/project/file.txt'). Relative paths are not supported.",
+                            "type": "string"
+                        },
+                        "content": {
+                            "description": "The content to write to the file.",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "absolute_path",
+                        "content"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        }
+    ],
+    "tool_choice": "auto",
+    "saveToContext": true,
+    "__debugArrayTruncation": {
+        "input": "Omitted 17 array items from debug payload"
+    }
+}

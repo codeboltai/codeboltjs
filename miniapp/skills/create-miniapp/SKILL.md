@@ -135,18 +135,143 @@ context.codebolt.tasks
 Pass the Nitro event to `useMiniApp(event)` in API routes. Tool handlers receive
 the context directly.
 
-Never accept `miniAppId`, `installId`, `workspaceId`, or `principal.userId` from
-request or tool input. The platform verifies and injects identity.
+## Runtime Portability
+
+MiniApp server code runs in restricted runtimes. Besides the Cloudflare rules
+below, the local CodeBolt host runs handlers inside a sandboxed worker thread
+where some Node/Web globals may be missing.
+
+- Do not assume the bare `crypto` global (for example `crypto.randomUUID()`)
+  exists. Guard feature detection and keep a fallback:
+
+```ts
+function generateId(): string {
+  const webCrypto =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto
+      : undefined;
+  if (webCrypto) return webCrypto.randomUUID();
+  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+```
+
+- Prefer inputs that carry their own ids when practical, and generate ids only
+  in one shared helper.
+- Do not import `node:crypto` in code that may target Cloudflare.
+
+## Define Tools
 
 Read [authoring-contract.md](references/authoring-contract.md) before adding
 tools, collections, API routes, blobs, tasks, pagination, or a frontend.
 
 ## Keep Browser And Tool Surfaces Separate
 
-Use MiniApp-owned API routes for browser interactions:
+export default defineTool({
+  name: "add-customer",
+  description: "Add a customer intake record.",
+  inputSchema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["id", "name"],
+    properties: {
+      id: { type: "string", minLength: 1 },
+      name: { type: "string", minLength: 1 },
+      email: { type: "string" },
+    },
+  },
+  async handler(context, input) {
+    return context.db.set("customers", input.id, input);
+  },
+});
+```
+
+Tool rules:
+
+- Use JSON Schema for input.
+- Keep tool names unique within one MiniApp.
+- Expect global tool names to be `<miniAppId>.<toolName>`.
+- Invalid input must fail before handler logic runs.
+- Prefer coarse operations over chatty loops.
+- Use `db.getMany`, `db.setMany`, filtered `db.list`, and task `count` APIs.
+- Do not call direct platform APIs from tools; use `context.db`,
+  `context.blob`, and `context.codebolt.tasks`.
+
+Cloudflare rule: do not compile JSON Schema at request time. Cloudflare Workers
+reject string-based code generation, including runtime Ajv compilation.
+
+## Define Collections
+
+Declare collection metadata under the MiniApp collection directory, usually
+`server/collections`.
+
+```ts
+import { defineCollection } from "@codebolt/miniapp";
+
+export default defineCollection({
+  name: "customers",
+  schema: {
+    type: "object",
+    required: ["id", "name"],
+    properties: {
+      id: { type: "string" },
+      name: { type: "string" },
+      email: { type: "string" },
+    },
+  },
+});
+```
+
+Collections describe manifest metadata and expected document shape. Storage
+implementation and namespace enforcement belong to the platform.
+
+## Add API Routes
+
+Use Nitro API routes for frontend/backend calls.
+
+```ts
+import { defineHandler } from "nitro/h3";
+import { useMiniApp } from "@codebolt/miniapp";
+
+export default defineHandler((event) => {
+  return useMiniApp(event).db.list("customers", { limit: 50 });
+});
+```
+
+API rules:
+
+- Browser code should resolve API paths document-relative (see Build The
+  Frontend) so calls stay inside the `/miniapps/<id>/` mount.
+- Use `useMiniApp(event)` so local and remote runtimes share the same code.
+- Do not create a separate Express/Fastify server for a MiniApp.
+- Keep platform access behind MiniApp capabilities.
+- Avoid N+1 capability calls in list screens.
+
+## Build The Frontend
+
+For simple MiniApps, static files in `public/` are enough.
+
+For richer MiniApps, follow the project's existing frontend framework.
+
+Resolve API paths against the page URL, never against the host root. The same
+build must work in three contexts:
+
+- CodeBolt host mount: `/miniapps/<miniAppId>/`
+- standalone preview: `/`
+- cloud origin: `/`
+
+A leading-slash path such as `/api/customers` is host-absolute. Under the
+CodeBolt host it escapes the app mount, hits the host HTML fallback, and the
+UI fails parsing HTML as JSON.
+
+Good (document-relative resolution):
 
 ```js
-await fetch("/api/customers");
+const apiBase = location.pathname.endsWith("/")
+  ? location.pathname
+  : `${location.pathname}/`;
+const apiUrl = (path) => `${apiBase}${path}`;
+
+await fetch(apiUrl("api/customers"));
 ```
 
 Use `server/tools` for agent-callable operations. Do not make UI code call
@@ -156,6 +281,19 @@ Use relative URLs. Never bake localhost, a deployment hostname, the MiniApp
 Server management URL, or a router hostname into app code.
 
 ## Build In Small Verified Slices
+```js
+await fetch("/api/customers"); // host-absolute; escapes /miniapps/<id>/ mount
+await fetch("http://localhost:4310/api/customers"); // hardcoded origin
+```
+
+Frontend async hygiene:
+
+- Capture `event.currentTarget` into a variable before the first `await`; it
+  becomes null after event dispatch completes.
+- Catch fetch failures and surface them in the UI instead of throwing inside
+  the handler.
+
+## Local Runtime Expectations
 
 Implement in this order:
 
@@ -168,7 +306,51 @@ Implement in this order:
 7. Exercise valid and invalid API/tool inputs.
 8. Validate the Cloudflare target when bundle deployment is intended.
 
-Use `scripts/validate-miniapp.mjs` after source changes:
+Do not add per-MiniApp hidden dev servers unless the user explicitly asks for
+that separate development mode.
+
+For exact local host routes, CodeBolt app routes, and local tool id shapes, read
+`references/local-cloud-publish.md`.
+
+## Remote Runtime Expectations
+
+In remote deployment:
+
+- each MiniApp can deploy independently
+- Node output runs as a normal Nitro Node server
+- Cloudflare output runs as a Cloudflare Worker
+- storage/blob/tasks calls go to CodeBolt Cloud capability APIs
+- the execution token carries user/workspace/install/MiniApp identity
+
+Remote code should not care whether it is running in Node or Cloudflare. The SDK
+should hide environment and capability transport differences.
+
+For cloud publishing, portal install flow, provider platforms, and cloud tool id
+shapes, read `references/local-cloud-publish.md`.
+
+## Debugging The Local Host
+
+When a MiniApp misbehaves under the CodeBolt host, check state before guessing:
+
+- `GET /api/miniapps/:id` reports runtime status including `unhealthy` and
+  `recentCrashes`.
+- A 503 `MINIAPP_UNHEALTHY` means the crash circuit breaker is open: the
+  worker exited unintentionally 3+ times within 60 seconds. The host keeps
+  returning 503 until reload.
+- Reset with `POST /api/miniapps/:id/reload`, then hit the failing route again
+  to observe the real failure.
+- If the worker crashes instantly on every request, suspect handler code or
+  the runtime environment (missing globals, unusable imports), not the host.
+- Capability-backed routes cannot run meaningfully outside the host; the
+  standalone `nitro preview` lacks the execution-token bridge, so API routes
+  fail there by design. Test those routes through the host.
+
+## Validation
+
+Use the current project's scripts. Prefer existing commands over inventing new
+ones.
+
+Typical checks:
 
 ```powershell
 node <skill-dir>/scripts/validate-miniapp.mjs <miniapp-root>
@@ -180,25 +362,39 @@ target matrix, manifest checks, realistic smoke tests, and completion criteria.
 
 ## Cloudflare Safety Rules
 
-For Cloudflare-bound routes and tools:
+For a new MiniApp, verify through the CodeBolt host mount, not only standalone
+preview:
 
-- avoid filesystem and process dependencies at request time
-- avoid Node-only networking/server libraries
-- never use `eval`, `new Function`, or request-time schema compilation
-- let the MiniApp Nitro module generate standalone validators during build
-- preserve the complete Nitro ESM graph in the `.miniapp` archive
-- keep Durable Objects, dynamic Worker loading, and management endpoints out of
-  MiniApp source; those belong to the shared MiniApp Server
+- static UI loads at `/miniapps/<id>/`
+- UI-driven flows work end to end (submit forms, then confirm the list
+  updates and the form resets) with the exact payloads the UI sends
+- tool discovery includes the new tools
+- invalid tool input is rejected
+- API routes can use `useMiniApp(event)`
+- storage and blob operations are namespaced
+- remote output can call CodeBolt Cloud capabilities
 
 ## Diagnose By Boundary
 
 Determine which boundary failed before changing code:
 
-```text
-authoring -> Nitro build -> manifest -> .miniapp archive
-  -> Edge catalog -> install provisioning -> router -> dynamic runtime
-  -> request-scoped capability bridge -> centralized storage
-```
+- `nitro.config.ts` uses the MiniApp Nitro module.
+- the build emits `.output/codebolt/miniapp.manifest.json`.
+- every tool has JSON Schema input.
+- validators are build-time compatible with Cloudflare.
+- collections are declared when needed.
+- the MiniApp UI entry route is declared in config when it is not `/`.
+- UI resolves API paths document-relative (works under `/miniapps/<id>/`).
+- UI async handlers capture `event.currentTarget` before awaiting.
+- server code does not assume bare `crypto` or other runtime-specific globals.
+- no Node-only APIs are used in Cloudflare-bound routes.
+- storage, blob, and tasks go through `useMiniApp()`.
+- list screens use batch/filter APIs rather than N+1 loops.
+- remote output uses execution-token identity.
+- local static asset discovery does not require backend startup.
+- UI-driven flows were exercised through the host mount, not preview alone.
+- publish/install documentation reflects the current `appId` versus `installId`
+  model.
 
 Read [troubleshooting.md](references/troubleshooting.md) for symptom-driven
 checks. Do not replace a failed layer with duplicated responsibilities in the

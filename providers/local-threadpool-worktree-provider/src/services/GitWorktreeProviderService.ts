@@ -48,6 +48,7 @@ export class GitWorktreeProviderService
   private logger: Logger;
   private environmentPath: string | null = null;
   private baseProjectPath: string | null = null;
+  private baseBranch: string | null = null;
   private readonly providerConfig: ProviderConfig;
   private readonly syncPolicy: LocalThreadpoolSyncPolicy = {
     defaultSyncMode: 'git',
@@ -347,9 +348,68 @@ export class GitWorktreeProviderService
     throw new Error('Merge/push workflow is not supported for local threadpool environment mode.');
   }
 
-  async onSendPR(): Promise<void> {
-    this.logger.log('PR workflow is not supported for local threadpool environment mode.');
-    throw new Error('PR workflow is not supported for local threadpool environment mode.');
+  async onSendPR(): Promise<Record<string, unknown>> {
+    const repositoryPath = this.baseProjectPath;
+    const checkoutPath = this.environmentInfo.path;
+    const headRef = this.environmentInfo.tag;
+    const baseRef = this.baseBranch;
+    if (!repositoryPath || !checkoutPath || !headRef) {
+      throw new Error('Base repository, worktree checkout, or worktree branch is not available');
+    }
+    if (!baseRef) {
+      throw new Error('Cannot create a local review request because the parent repository is not on a branch');
+    }
+
+    const git = async (args: string[]): Promise<string> => {
+      const { stdout } = await this.git(args, checkoutPath);
+      return stdout.trim();
+    };
+    this.logger.log('Preparing worktree changes for a retained review request');
+    const status = await git(['status', '--porcelain', '--untracked-files=all']);
+    if (status) {
+      await git(['add', '--all']);
+      const stagedStatus = await git(['diff', '--cached', '--name-only']);
+      if (stagedStatus) {
+        await git([
+          '-c', 'user.name=CodeBolt',
+          '-c', 'user.email=codebolt@local.invalid',
+          'commit', '-m', 'CodeBolt review: ' + headRef,
+        ]);
+      }
+    }
+
+    const headSha = await git(['rev-parse', 'HEAD^{commit}']);
+    const range = baseRef + '...' + headSha;
+    const majorFilesChanged = (await git(['diff', '--name-only', range]))
+      .split('\n').filter(Boolean);
+    if (!majorFilesChanged.length) {
+      throw new Error('No changes to retain from worktree branch ' + headRef);
+    }
+    const diffPatch = await git(['diff', '--binary', range]);
+    const gitDetails = {
+      provider: 'local_git',
+      transport: 'local_merge',
+      repositoryPath,
+      checkoutPath,
+      baseRef,
+      headRef,
+      headSha,
+    };
+    return {
+      sourceType: 'git',
+      rmrSourceType: 'git',
+      title: 'Worktree changes: ' + headRef,
+      description: 'Local Git review from worktree branch ' + headRef + '.',
+      majorFilesChanged,
+      diffPatch,
+      headRef,
+      headSha,
+      baseRef,
+      checkoutPath,
+      repositoryPath,
+      mergeConfig: { strategy: 'git', sourceType: 'git', git: gitDetails },
+      git: gitDetails,
+    };
   }
 
   onCreatePatchRequest(): void {
@@ -477,6 +537,10 @@ export class GitWorktreeProviderService
       this.baseProjectPath = path.resolve(launch.resolvedPath, '..', '..', '..');
     }
 
+    this.baseBranch = this.baseProjectPath
+      ? await this.git(['symbolic-ref', '--quiet', '--short', 'HEAD'], this.baseProjectPath)
+          .then(({ stdout }) => stdout.trim()).catch(() => null)
+      : null;
     this.environmentPath = launch.resolvedPath;
   }
 

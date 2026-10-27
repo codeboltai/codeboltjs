@@ -21,6 +21,8 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     requirements: additionalVariable.requirements || 'Build a web application',
   };
 
+  codebolt.chat.sendMessage(JSON.stringify(ctx));
+
   // Fetch swarm configuration
   let swarmConfig: SwarmConfig = {
     isJobSelfSplittingEnabled: false,
@@ -32,6 +34,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
   try {
     const configResponse = await codebolt.swarm.getSwarmConfig(ctx.swarmId);
+    codebolt.chat.sendMessage(JSON.stringify(configResponse));
     if (configResponse.success && configResponse.data?.config) {
       const fetchedConfig = configResponse.data.config;
       swarmConfig = {

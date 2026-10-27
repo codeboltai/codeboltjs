@@ -45,7 +45,23 @@ POST /__codebolt/tools/<app-id>.<tool-name>
 POST /__codebolt/apps/<app-id>/reload
 ```
 
-CodeBolt application routes commonly include:
+Resolve API paths against the page URL in UI code. A leading slash such as
+`/api/leads` is host-absolute: under the CodeBolt app it escapes the
+`/miniapps/<id>/` mount and returns the host HTML fallback. Use:
+
+```js
+const apiBase = location.pathname.endsWith("/")
+  ? location.pathname
+  : `${location.pathname}/`;
+await fetch(`${apiBase}api/leads`);
+```
+
+Do not hardcode a local host URL inside the MiniApp.
+
+## CodeBolt App Local Runtime
+
+CodeBolt discovers built MiniApps from its configured/project MiniApp
+directories, then exposes:
 
 ```text
 GET  /api/miniapps
@@ -60,12 +76,35 @@ Use relative UI requests such as `fetch("/api/items")`.
 
 ## Dedicated Cloud Deployment
 
-Keep the existing dedicated path for applications that need a separately
-deployed provider Worker/application:
+HTML where JSON was expected       UI used a host-absolute path; make it
+                                   document-relative (see above)
+500 only on body-bearing requests  runtime-global assumptions in the handler
+                                   (for example bare crypto); see SKILL.md
+                                   Runtime Portability
+```
+
+A reload resets the crash counter; if the app returns to 503 immediately, the
+handler is crashing on request dispatch — inspect handler code for
+runtime-specific globals or imports rather than retrying.
+
+Local MiniApp tools are exposed through the server tool registry with ids:
+
+```text
+miniapp.<appId>.<toolName>
+```
+
+Treat MiniApp tools like MCP/plugin/project tools after registration; do not
+special-case tool execution in agents.
+
+## Cloud Publishing
+
+Publish through CodeBolt Cloud, not through provider-specific user secrets. The
+provider credentials live on the admin-managed deploy provider worker.
+
+Use the CodeBolt CLI:
 
 ```powershell
 codebolt action miniapp deploy <miniapp-root> `
-  --install-policy anyone `
   --default-access private
 ```
 

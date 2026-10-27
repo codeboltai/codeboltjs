@@ -38,7 +38,9 @@ export async function createJobsFromActionPlan(
         }
 
         // Step 1: Read requirement plan
-        const planResponse = await codebolt.requirementPlan.get(requirementPlanId);
+        // codebolt.requirementPlan was removed in @codebolt/codeboltjs 5.1.50 —
+        // the same document service is now exposed as codebolt.featurePlan.
+        const planResponse = await codebolt.featurePlan.get(requirementPlanId);
         if (!planResponse.success || !planResponse.data) {
             const errorMsg = MESSAGES.ERROR_READING_PLAN(planResponse.error || 'Unknown error');
             codebolt.chat.sendMessage(errorMsg, {});
@@ -50,7 +52,9 @@ export async function createJobsFromActionPlan(
             };
         }
 
-        const reqPlan: RequirementPlanDocument = planResponse.data;
+        // The SDK returns FeaturePlanDocument whose section types are a superset
+        // (note-link, execution-plan-link) of the requirement-plan section types.
+        const reqPlan = planResponse.data as RequirementPlanDocument;
 
         // Step 2: Extract sections
         const specsSection = reqPlan.sections.find(s => s.type === 'specs-link');
@@ -93,7 +97,9 @@ export async function createJobsFromActionPlan(
         }
 
         // Step 4: Fetch action plan details
-        const actionPlanResponse = await codebolt.actionPlan.getPlanDetail(actionPlanId);
+        // codebolt.actionPlan was removed in @codebolt/codeboltjs 5.1.50 —
+        // action plans are now managed through codebolt.executionPlan.
+        const actionPlanResponse = await codebolt.executionPlan.getPlanDetail(actionPlanId);
         if (!actionPlanResponse.success || !actionPlanResponse.actionPlan) {
             const errorMsg = MESSAGES.ERROR_READING_ACTION_PLAN(actionPlanResponse.message || 'Unknown error');
             codebolt.chat.sendMessage(errorMsg, {});

@@ -30,21 +30,12 @@ const agentTracker = codebolt.backgroundChildThreads;
 
 let WORKER_AGENT_ID = "c4d3fdb9-cf9e-4f82-8a1d-0160bbfc9ae9";
 
-codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) => {
+// NOTE: codebolt.orchestrator was removed in @codebolt/codeboltjs 5.1.50, so the
+// default worker agent ID is used directly. The cast below works around duplicate
+// @codebolt/types versions (5.1.14 at root vs 5.1.13 nested in codeboltjs) whose
+// FlatUserMessage shapes are structurally incompatible at this boundary.
+codebolt.onMessage((async (reqMessage: FlatUserMessage, additionalVariable: any) => {
 
-    // codebolt.chat.sendMessage("Orchestrator Config: " + JSON.stringify(additionalVariable));
-    try {
-        const orchestratorId = additionalVariable?.orchestratorId || 'orchestrator';
-        const orchestratorConfig = await codebolt.orchestrator.getOrchestrator(orchestratorId);
-        const configData = orchestratorConfig.data as { orchestrator?: { defaultWorkerAgentId?: string } };
-        WORKER_AGENT_ID = configData?.orchestrator?.defaultWorkerAgentId || "";
-        // codebolt.chat.sendMessage("Orchestrator Config: " + orchestratorId);
-        // codebolt.chat.sendMessage(JSON.stringify(orchestratorConfig));
-        // return true
-
-    } catch (error) {
-        console.log('[Orchestrator] Using default configuration');
-    }
     //STEP 1: Analysis and planning only — no ActionBlock calls
     let sessionSystemPrompt = PLANNER_SYSTEM_PROMPT + `
     <important>
@@ -89,19 +80,24 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
 
         // Check for async events from child agents
         const runningCount = agentTracker.getRunningAgentCount();
-        const pendingEventCount = eventQueue.getPendingExternalEventCount();
+        const queueStatsResponse = await eventQueue.getQueueStats();
+        // Field name differs across @codebolt/types versions: totalPending (5.1.13) vs totalPendingEvents (5.1.14)
+        const queueStatsData = queueStatsResponse.data as
+            | { totalPending?: number; totalPendingEvents?: number }
+            | undefined;
+        const pendingEventCount = queueStatsData?.totalPending ?? queueStatsData?.totalPendingEvents ?? 0;
 
         if (runningCount > 0 || pendingEventCount > 0) {
             continueLoop = true;
 
             // If agents are running but no events yet, wait for the next event
             if (pendingEventCount === 0 && runningCount > 0) {
-                const nextEvent = await eventQueue.waitForAnyExternalEvent();
+                const nextEvent = await agentTracker.waitForAnyExternalEvent();
                 processExternalEvent(nextEvent, prompt);
             }
 
             // Drain any remaining pending events
-            const remainingEvents = eventQueue.getPendingExternalEvents();
+            const remainingEvents = await eventQueue.getPendingEvents();
             for (const event of remainingEvents) {
                 processExternalEvent(event, prompt);
             }
@@ -167,7 +163,7 @@ codebolt.onMessage(async (reqMessage: FlatUserMessage, additionalVariable: any) 
     }
 
     return true;
-});
+}) as any);
 
 /**
  * STEP 4: Execute jobs using the same agentic loop pattern as Step 1 (planning).
@@ -251,19 +247,24 @@ ${jobContextXml}`;
 
         // Check for async events from child worker agents
         const runningCount = agentTracker.getRunningAgentCount();
-        const pendingEventCount = eventQueue.getPendingExternalEventCount();
+        const queueStatsResponse = await eventQueue.getQueueStats();
+        // Field name differs across @codebolt/types versions: totalPending (5.1.13) vs totalPendingEvents (5.1.14)
+        const queueStatsData = queueStatsResponse.data as
+            | { totalPending?: number; totalPendingEvents?: number }
+            | undefined;
+        const pendingEventCount = queueStatsData?.totalPending ?? queueStatsData?.totalPendingEvents ?? 0;
 
         if (runningCount > 0 || pendingEventCount > 0) {
             jobContinueLoop = true;
 
             // If agents are running but no events yet, wait for the next event
             if (pendingEventCount === 0 && runningCount > 0) {
-                const nextEvent = await eventQueue.waitForAnyExternalEvent();
+                const nextEvent = await agentTracker.waitForAnyExternalEvent();
                 processExternalEvent(nextEvent, jobPrompt);
             }
 
             // Drain any remaining pending events
-            const remainingEvents = eventQueue.getPendingExternalEvents();
+            const remainingEvents = await eventQueue.getPendingEvents();
             for (const event of remainingEvents) {
                 processExternalEvent(event, jobPrompt);
             }

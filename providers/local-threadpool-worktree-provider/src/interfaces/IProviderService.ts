@@ -102,7 +102,7 @@ export interface IProviderService {
   onGetDiffFiles(): Promise<DiffResult>;
   onCloseSignal(): Promise<void>;
   onMergeAsPatch(): Promise<string>;
-  onSendPR(): Promise<void>;
+  onSendPR(): Promise<Record<string, unknown>>;
   onCreatePatchRequest(): void | Promise<void>;
   onCreatePullRequestRequest(): void | Promise<void>;
   createWorktree(

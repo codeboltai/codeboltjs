@@ -30,7 +30,6 @@
  * It does NOT implement:
  *   - image inputs
  *   - image outputs
- *   - thinking / extended-thinking streaming (the reasoning field is ignored)
  *   - prompt caching / cache_control beyond a single trailing marker
  *   - retry/backoff on 429/529
  * Port from pi-mono packages/ai/src/providers/anthropic.ts as needed.
@@ -64,7 +63,15 @@ type ModelMetadata = {
     name: string;
     tokenLimit?: number;
     maxOutputTokens?: number;
+    supportsReasoning?: boolean;
+    reasoningWireFormat?: string;
+    reasoningOptions?: Array<Record<string, unknown>>;
 };
+
+const ANTHROPIC_REASONING_OPTIONS = [
+    { type: 'effort', values: ['low', 'medium', 'high'], default: 'medium' },
+    { type: 'budget_tokens', min: 1024, default: 10000 },
+];
 
 const discoveredModelMetadata = new Map<
     string,
@@ -75,35 +82,36 @@ const ANTHROPIC_MODEL_METADATA: Record<
     string,
     { tokenLimit?: number; maxOutputTokens?: number }
 > = {
-    // Official Anthropic model docs checked on 2026-04-27.
-    'claude-opus-4-1': { tokenLimit: 200000, maxOutputTokens: 32000 },
-    'claude-opus-4-1-20250805': { tokenLimit: 200000, maxOutputTokens: 32000 },
-    'claude-opus-4-0': { tokenLimit: 200000, maxOutputTokens: 32000 },
-    'claude-opus-4-20250514': { tokenLimit: 200000, maxOutputTokens: 32000 },
-    'claude-sonnet-4-0': { tokenLimit: 200000, maxOutputTokens: 64000 },
-    'claude-sonnet-4-20250514': { tokenLimit: 200000, maxOutputTokens: 64000 },
-    'claude-3-7-sonnet-latest': { tokenLimit: 200000, maxOutputTokens: 64000 },
-    'claude-3-7-sonnet-20250219': { tokenLimit: 200000, maxOutputTokens: 64000 },
-    'claude-3-5-haiku-latest': { tokenLimit: 200000, maxOutputTokens: 8192 },
-    'claude-3-5-haiku-20241022': { tokenLimit: 200000, maxOutputTokens: 8192 },
-    'claude-3-haiku-20240307': { tokenLimit: 200000, maxOutputTokens: 4096 },
+    // Official Anthropic model docs + deprecations page checked on 2026-09-08.
+    // All previously listed models (opus-4-1, sonnet-4, 3-7-sonnet, 3-5-haiku,
+    // 3-haiku) were retired between Feb and Aug 2026 and now 404.
+    'claude-fable-5-1': { tokenLimit: 1000000, maxOutputTokens: 128000 },
+    'claude-fable-5': { tokenLimit: 1000000, maxOutputTokens: 128000 },
+    'claude-opus-5': { tokenLimit: 1000000, maxOutputTokens: 128000 },
+    'claude-opus-4-8': { tokenLimit: 200000, maxOutputTokens: 64000 },
+    'claude-opus-4-7': { tokenLimit: 200000, maxOutputTokens: 64000 },
+    'claude-opus-4-6': { tokenLimit: 200000, maxOutputTokens: 64000 },
+    'claude-opus-4-5-20251101': { tokenLimit: 200000, maxOutputTokens: 64000 },
+    'claude-sonnet-5': { tokenLimit: 1000000, maxOutputTokens: 128000 },
+    'claude-sonnet-4-6': { tokenLimit: 200000, maxOutputTokens: 64000 },
+    'claude-sonnet-4-5-20250929': { tokenLimit: 200000, maxOutputTokens: 64000 },
+    'claude-haiku-4-5-20251001': { tokenLimit: 200000, maxOutputTokens: 64000 },
+    'claude-haiku-4-5': { tokenLimit: 200000, maxOutputTokens: 64000 },
 };
 
 const FALLBACK_MODELS: ModelMetadata[] = [
-    { id: 'claude-opus-4-1', name: 'claude-opus-4-1' },
-    { id: 'claude-opus-4-1-20250805', name: 'claude-opus-4-1-20250805' },
-    { id: 'claude-opus-4-0', name: 'claude-opus-4-0' },
-    { id: 'claude-opus-4-20250514', name: 'claude-opus-4-20250514' },
-    { id: 'claude-sonnet-4-0', name: 'claude-sonnet-4-0' },
-    { id: 'claude-sonnet-4-20250514', name: 'claude-sonnet-4-20250514' },
-    { id: 'claude-3-7-sonnet-latest', name: 'claude-3-7-sonnet-latest' },
-    { id: 'claude-3-7-sonnet-20250219', name: 'claude-3-7-sonnet-20250219' },
-    { id: 'claude-3-5-haiku-latest', name: 'claude-3-5-haiku-latest' },
-    { id: 'claude-3-5-haiku-20241022', name: 'claude-3-5-haiku-20241022' },
-    { id: 'claude-3-haiku-20240307', name: 'claude-3-haiku-20240307' },
+    { id: 'claude-fable-5-1', name: 'claude-fable-5-1' },
+    { id: 'claude-opus-5', name: 'claude-opus-5' },
+    { id: 'claude-sonnet-5', name: 'claude-sonnet-5' },
+    { id: 'claude-opus-4-8', name: 'claude-opus-4-8' },
+    { id: 'claude-opus-4-6', name: 'claude-opus-4-6' },
+    { id: 'claude-sonnet-4-6', name: 'claude-sonnet-4-6' },
+    { id: 'claude-sonnet-4-5-20250929', name: 'claude-sonnet-4-5-20250929' },
+    { id: 'claude-haiku-4-5-20251001', name: 'claude-haiku-4-5-20251001' },
 ].map((model) => ({
     ...model,
     ...ANTHROPIC_MODEL_METADATA[model.id],
+    ...getAnthropicReasoningCapability(),
 }));
 
 function notifyChat(message: string): void {
@@ -522,7 +530,7 @@ function collectRequestTools(options: any): any[] | undefined {
 
 function normalizeModelId(raw: unknown): string {
     const s = String(raw ?? '').trim();
-    if (!s) return 'claude-sonnet-4-0';
+    if (!s) return 'claude-sonnet-5';
     return s.toLowerCase().replace(/\s+/g, '-');
 }
 
@@ -535,10 +543,12 @@ function coercePositiveNumber(value: unknown): number | undefined {
 function extractModelMetadata(model: any): { tokenLimit?: number; maxOutputTokens?: number } {
     return {
         tokenLimit:
+            coercePositiveNumber(model?.max_input_tokens) ??
             coercePositiveNumber(model?.context_window) ??
             coercePositiveNumber(model?.input_token_limit) ??
             coercePositiveNumber(model?.token_limit),
         maxOutputTokens:
+            coercePositiveNumber(model?.max_tokens) ??
             coercePositiveNumber(model?.max_output_tokens) ??
             coercePositiveNumber(model?.output_token_limit),
     };
@@ -546,6 +556,67 @@ function extractModelMetadata(model: any): { tokenLimit?: number; maxOutputToken
 
 function getModelMetadata(modelId: string): { tokenLimit?: number; maxOutputTokens?: number } {
     return discoveredModelMetadata.get(modelId) ?? ANTHROPIC_MODEL_METADATA[modelId] ?? {};
+}
+
+function getAnthropicReasoningCapability(): Pick<
+    ModelMetadata,
+    'supportsReasoning' | 'reasoningWireFormat' | 'reasoningOptions'
+> {
+    return {
+        supportsReasoning: true,
+        reasoningWireFormat: 'anthropic',
+        reasoningOptions: ANTHROPIC_REASONING_OPTIONS,
+    };
+}
+
+function getReasoningEffort(options: any): string | undefined {
+    const reasoning = options?.reasoning;
+    const effort =
+        typeof reasoning?.effort === 'string'
+            ? reasoning.effort
+            : typeof reasoning?.reasoningEffort === 'string'
+                ? reasoning.reasoningEffort
+                : typeof options?.reasoningEffort === 'string'
+                    ? options.reasoningEffort
+                    : undefined;
+    return effort || undefined;
+}
+
+function getReasoningBudget(options: any): number | undefined {
+    const reasoning = options?.reasoning;
+    const value = reasoning?.maxTokens ?? reasoning?.thinkingBudget;
+    return typeof value === 'number' && Number.isFinite(value) && value > 0
+        ? value
+        : undefined;
+}
+
+function isReasoningDisabled(options: any): boolean {
+    const reasoning = options?.reasoning;
+    return reasoning?.includeReasoning === false
+        || reasoning?.exclude === true
+        || getReasoningEffort(options) === 'none';
+}
+
+function applyAnthropicReasoning(body: any, options: any): void {
+    if (!options?.reasoning || isReasoningDisabled(options)) return;
+
+    const budget = getReasoningBudget(options);
+    const effort = getReasoningEffort(options);
+
+    if (budget !== undefined) {
+        const budgetTokens = Math.max(1024, budget);
+        body.thinking = { type: 'enabled', budget_tokens: budgetTokens };
+        body.max_tokens = Math.max(body.max_tokens ?? 8192, budgetTokens + 1024);
+    } else if (effort && effort !== 'none') {
+        body.thinking = { type: 'adaptive' };
+    } else {
+        body.thinking = { type: 'enabled', budget_tokens: 10000 };
+        body.max_tokens = Math.max(body.max_tokens ?? 8192, 11024);
+    }
+
+    if (effort && effort !== 'none') {
+        body.output_config = { effort };
+    }
 }
 
 function getProviderManifest(models: ModelMetadata[]) {
@@ -572,6 +643,7 @@ function buildMessagesBody(options: any): any {
         cache_control: { type: 'ephemeral' },
     };
     if (options?.temperature !== undefined) body.temperature = options.temperature;
+    applyAnthropicReasoning(body, options);
     const tools = toAnthropicTools(collectRequestTools(options));
     if (tools) body.tools = tools;
     return body;
@@ -596,6 +668,7 @@ interface Aggregator {
     usage?: any;
     callerTools?: any[];
     rawLLMRequest?: any;
+    reasoning: string;
 }
 
 function newAggregator(model: string, callerTools?: any[]): Aggregator {
@@ -610,6 +683,7 @@ function newAggregator(model: string, callerTools?: any[]): Aggregator {
         usage: undefined,
         callerTools,
         rawLLMRequest: undefined,
+        reasoning: '',
     };
 }
 
@@ -733,6 +807,9 @@ function makeFinalResponse(agg: Aggregator): any {
             },
         }));
     const message: any = { role: 'assistant', content: agg.text };
+    if (agg.reasoning) {
+        message.reasoning = { thinking: agg.reasoning };
+    }
     if (toolCalls.length > 0) {
         message.tool_calls = toolCalls;
         if (agg.finish === 'stop') agg.finish = 'tool_calls';
@@ -883,7 +960,13 @@ function handleAnthropicEvent(
             );
             return;
         }
-        // thinking_delta, signature_delta: ignored in this minimal adapter
+        if (delta?.type === 'thinking_delta') {
+            const thinking: string = delta.thinking ?? '';
+            agg.reasoning += thinking;
+            if (thinking) emit(ccChunk(agg, { thinking }));
+            return;
+        }
+        // signature_delta is not surfaced in the normalized stream shape.
         return;
     }
 
@@ -958,41 +1041,56 @@ async function getSavedCredentialsForDiscovery(): Promise<OAuthCredentials | nul
 }
 
 async function fetchDynamicModelsWithCredentials(creds: OAuthCredentials): Promise<ModelMetadata[]> {
-    const res = await fetch(MODELS_URL, {
-        headers: {
-            Authorization: `Bearer ${creds.access_token}`,
-            Accept: 'application/json',
-            'anthropic-version': '2023-06-01',
-            'anthropic-beta': BETA_FEATURES.join(','),
-            'user-agent': 'claude-cli/2.1.2 (external, cli)',
-            'x-app': 'cli',
-        },
-    });
+    const modelsById = new Map<string, ModelMetadata>();
+    const MAX_PAGES = 10;
+    let afterId: string | undefined;
 
-    if (!res.ok) {
-        throw new Error(`Model discovery failed: ${res.status} ${await res.text()}`);
+    // GET /v1/models is paginated (default page size 20, `has_more`/`last_id`
+    // cursor) — a single request silently misses most of the catalog.
+    for (let page = 0; page < MAX_PAGES; page++) {
+        const url = new URL(MODELS_URL);
+        url.searchParams.set('limit', '100');
+        if (afterId) url.searchParams.set('after_id', afterId);
+
+        const res = await fetch(url.toString(), {
+            headers: {
+                Authorization: `Bearer ${creds.access_token}`,
+                Accept: 'application/json',
+                'anthropic-version': '2023-06-01',
+                'anthropic-beta': BETA_FEATURES.join(','),
+                'user-agent': 'claude-cli/2.1.2 (external, cli)',
+                'x-app': 'cli',
+            },
+        });
+
+        if (!res.ok) {
+            throw new Error(`Model discovery failed: ${res.status} ${await res.text()}`);
+        }
+
+        const payload: any = await res.json();
+        const pageModels: any[] = Array.isArray(payload?.data) ? payload.data : [];
+
+        for (const model of pageModels) {
+            const id = String(model?.id ?? '').trim();
+            if (!id || modelsById.has(id)) continue;
+            const metadata = {
+                ...ANTHROPIC_MODEL_METADATA[id],
+                ...extractModelMetadata(model),
+            };
+            discoveredModelMetadata.set(id, metadata);
+            modelsById.set(id, {
+                id,
+                name: String(model?.display_name ?? id).trim() || id,
+                ...metadata,
+                ...getAnthropicReasoningCapability(),
+            });
+        }
+
+        if (!payload?.has_more || !payload?.last_id) break;
+        afterId = payload.last_id;
     }
 
-    const payload: any = await res.json();
-    const models: ModelMetadata[] = Array.isArray(payload?.data)
-        ? payload.data
-              .map((model: any) => {
-                  const id = String(model?.id ?? '').trim();
-                  if (!id) return null;
-                  const metadata = {
-                      ...ANTHROPIC_MODEL_METADATA[id],
-                      ...extractModelMetadata(model),
-                  };
-                  discoveredModelMetadata.set(id, metadata);
-                  return {
-                      id,
-                      name: String(model?.display_name ?? id).trim() || id,
-                      ...metadata,
-                  };
-              })
-              .filter(Boolean)
-        : [];
-
+    const models = Array.from(modelsById.values());
     if (models.length === 0) {
         throw new Error('Model discovery returned no models');
     }
