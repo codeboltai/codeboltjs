@@ -40,6 +40,9 @@ export function prepareSandboxChatMessage(input: Record<string, any>, workspaceP
   return {
     type: 'threadEvent', action: 'createAndStartThread',
     requestId, messageId: requestId, timestamp: new Date().toISOString(), params,
+    // Existing E2B templates read finalMessage.message before dispatching. Keep
+    // both bodies identical so those templates and the current API can start.
+    message: params,
   };
 }
 
@@ -62,7 +65,27 @@ export function requestSandboxAgentStart(
     const onMessage = (raw: any) => {
       let response: any;
       try { response = JSON.parse(raw.toString()); } catch { return; }
-      if (!response || (response.requestId !== request.requestId && response.messageId !== request.messageId)) return;
+      if (!response) return;
+      // Legacy runtimes send this dispatch acknowledgement immediately, but
+      // defer startThreadResponse until the whole task completes. Match both
+      // thread and agent; unrelated chat traffic is not an acknowledgement.
+      const expectedAgentId = request.params.selectedAgent?.id || request.params.selectedAgent?.agentId;
+      if (response.type === 'ThreadAgentStarted' && request.params.threadId && expectedAgentId &&
+        response.threadId === request.params.threadId && response.agentId === expectedAgentId) {
+        cleanup();
+        resolve({ ...response, success: true });
+        return;
+      }
+      const notification = ['executionGateway.notification', 'executionNotification'].includes(response.type);
+      // Older gateways correlate notifications through the original request;
+      // their result (and the direct response) may have no correlation fields.
+      const correlation = notification ? response.originalMessage : response;
+      if (!correlation || !(
+        (request.requestId && correlation.requestId === request.requestId) ||
+        (request.messageId && correlation.messageId === request.messageId)
+      )) return;
+      if (notification) response = response.result;
+      if (!response) return;
       if (!['startThreadResponse', 'errorResponse', 'externalError'].includes(response.type)) return;
       if (response.type !== 'startThreadResponse' || response.success !== true || response.error) {
         fail(new Error(response.error || 'Sandbox agent failed to start'));
@@ -97,4 +120,15 @@ export function rebaseSandboxSettings(content: string, hostRoot: string, sandbox
     }
     return value;
   });
+}
+
+/** The sandbox has one project, even when the host's active profile points elsewhere. */
+export function prepareSandboxGlobalSettings(content: string, hostRoot: string, sandboxRoot: string): string {
+  const settings = JSON.parse(rebaseSandboxSettings(content, hostRoot, sandboxRoot));
+  if (Array.isArray(settings.codebolt_users)) {
+    settings.codebolt_users = settings.codebolt_users.map((user: Record<string, any>) => ({
+      ...user, active_project_path: sandboxRoot,
+    }));
+  }
+  return JSON.stringify(settings);
 }

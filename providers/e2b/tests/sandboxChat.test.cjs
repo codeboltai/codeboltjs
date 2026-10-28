@@ -115,6 +115,7 @@ test('keeps the generic gateway transport and normalizes the host turn for sandb
   assert.equal(sent.params.waitForCompletion, false);
   assert.equal(sent.params.projectPath, '/home/user/project');
   assert.equal(sent.params.userMessage, 'hi');
+  assert.deepEqual(sent.message, sent.params);
   assert.equal(sent.params.selectedAgent.id, 'act-agent');
   assert.equal(sent.params.environment, undefined);
   assert.equal(sent.params.remoteEnv, undefined);
@@ -181,6 +182,70 @@ test('propagates correlated server startup errors', async () => {
   assert.equal(socket.listenerCount('message'), 0);
 });
 
+test('accepts the legacy dispatch acknowledgement only for the requested thread and agent', async () => {
+  const { service, socket, Socket } = fixture({ timeouts: { agentStart: 1000 } });
+  Socket.autoReply = false;
+  let settled = false;
+  const result = service.onProviderAgentStart(turn()).then(() => { settled = true; });
+  await waitForSend(socket);
+  for (const event of [
+    { type: 'ThreadAgentStarted', threadId: 'other-thread', agentId: 'act-agent' },
+    { type: 'ThreadAgentStarted', threadId: 'host-thread', agentId: 'other-agent' },
+    { type: 'ThreadAgentStarted', threadId: 'host-thread' },
+    { type: 'chatBroadcast', message: { type: 'message', threadId: 'host-thread', content: 'Installing agent' } },
+  ]) socket.emit('message', JSON.stringify(event));
+  await Promise.resolve();
+  assert.equal(settled, false);
+  socket.emit('message', JSON.stringify({ type: 'ThreadAgentStarted', threadId: 'host-thread', agentId: 'act-agent' }));
+  await result;
+  assert.equal(settled, true);
+  assert.equal(socket.listenerCount('message'), 0);
+  assert.equal(socket.listenerCount('close'), 0);
+  assert.equal(socket.listenerCount('error'), 0);
+});
+
+test('accepts subsequent turns on the same legacy thread without waiting for task completion', async () => {
+  const { service, socket, Socket } = fixture({ timeouts: { agentStart: 1000 } });
+  Socket.autoReply = false;
+  for (let count = 1; count <= 2; count++) {
+    const result = service.onProviderAgentStart(turn());
+    const request = await waitForSend(socket, count);
+    socket.emit('message', JSON.stringify({ type: 'ThreadAgentStarted', threadId: request.message.threadId, agentId: request.message.selectedAgent.id }));
+    await result;
+  }
+  assert.notEqual(socket.sent[0].requestId, socket.sent[1].requestId);
+});
+
+test('correlates legacy notifications and ignores unrelated or uncorrelated results', async () => {
+  const { service, socket, Socket } = fixture();
+  Socket.autoReply = false;
+  let settled = false;
+  const result = service.onProviderAgentStart(turn()).then(() => { settled = true; });
+  const request = await waitForSend(socket);
+  const response = { type: 'startThreadResponse', success: true, threadId: 'host-thread' };
+  socket.emit('message', JSON.stringify(response));
+  socket.emit('message', JSON.stringify({ type: 'executionGateway.notification', originalMessage: { requestId: 'other-request' }, result: response }));
+  await Promise.resolve();
+  assert.equal(settled, false);
+  socket.emit('message', JSON.stringify({ type: 'executionGateway.notification', originalMessage: request, result: response }));
+  await result;
+  assert.equal(settled, true);
+  assert.equal(socket.listenerCount('message'), 0);
+});
+
+test('propagates the legacy template error immediately through its notification', async () => {
+  const { service, socket, Socket } = fixture();
+  Socket.autoReply = false;
+  const rejected = assert.rejects(service.onProviderAgentStart(turn()), /Cannot set properties of undefined/);
+  const request = await waitForSend(socket);
+  socket.emit('message', JSON.stringify({
+    type: 'executionGateway.notification', originalMessage: request,
+    result: { type: 'errorResponse', error: "Cannot set properties of undefined (setting 'parentId')" },
+  }));
+  await rejected;
+  assert.equal(socket.listenerCount('message'), 0);
+});
+
 test('rejects when the gateway disconnects before confirming startup', async () => {
   const { service, socket, Socket } = fixture();
   Socket.autoReply = false;
@@ -213,7 +278,8 @@ test('rejects empty tasks before sending a startup request', async () => {
   assert.equal(socket.sent.length, 0);
 });
 
-test('starts through a real local WebSocket gateway and waits for its response', async t => {
+for (const format of ['current', 'legacy', 'legacy-dispatch']) {
+test(`starts through a real local ${format} WebSocket gateway and waits for its response`, async t => {
   const { WebSocket, WebSocketServer } = require(require.resolve('ws', { paths: [root] }));
   const { once } = require('node:events');
   const { service } = fixture();
@@ -240,10 +306,26 @@ test('starts through a real local WebSocket gateway and waits for its response',
   assert.equal(request.params.userMessage, 'hi');
   assert.equal(request.params.environment, undefined);
   assert.equal(settled, false);
-  serverSocket.send(JSON.stringify({ type: 'startThreadResponse', requestId: request.requestId, success: true, threadId: request.params.threadId }));
+  let response;
+  if (format.startsWith('legacy')) {
+    // Reproduce the template's dereference that failed in env-a7077e0f.
+    request.message.parentId = request.threadId;
+    assert.equal(request.message.parentId, undefined);
+    assert.equal(request.message.threadId, 'host-thread');
+    assert.equal(request.message.userMessage, 'hi');
+    assert.equal(request.message.selectedAgent.id, 'act-agent');
+    response = format === 'legacy-dispatch'
+      ? { type: 'ThreadAgentStarted', threadId: request.message.threadId, agentId: request.message.selectedAgent.id }
+      : { type: 'executionGateway.notification', originalMessage: request,
+          result: { type: 'startThreadResponse', success: true, threadId: request.message.threadId } };
+  } else {
+    response = { type: 'startThreadResponse', requestId: request.requestId, success: true, threadId: request.params.threadId };
+  }
+  serverSocket.send(JSON.stringify(response));
   await result;
   assert.equal(settled, true);
 });
+}
 
 test('reports the sandbox workspace and actual environment ID while keeping local metadata separate', async () => {
   const { service } = fixture();
@@ -270,4 +352,33 @@ test('rebases nested active-project settings without touching unrelated projects
   assert.deepEqual(result.files, ['/home/user/project/src/index.ts', '/Users/host/project-other/src/index.ts']);
   assert.equal(result.apiKey, 'secret');
   assert.equal(result.endpoint, 'https://example.test');
+});
+
+test('pins sandbox user profiles to its workspace even when host profiles select other projects', () => {
+  const { helpers } = fixture();
+  const source = {
+    codebolt_users: [
+      { userId: 'first', active_profile_id: 'default', active_project_path: '/Users/host/unrelated' },
+      { userId: 'second', active_profile_id: 'second-profile', active_project_path: '/Users/host/codeboltjs' },
+    ],
+    codebolt_userprofiles: [{ profileId: 'default', llm_settings: [{ apiKey: 'test-key' }] }],
+    projectHistory: ['/Users/host/unrelated'],
+    projectConfig: '/Users/host/continuing-olive/.codebolt/projectState.json',
+  };
+  const serialized = helpers.prepareSandboxGlobalSettings(JSON.stringify(source), '/Users/host/continuing-olive', '/home/user/env-b64c3987');
+  // Both initial startup and the agent connection reload this serialized file.
+  for (let reload = 0; reload < 2; reload++) {
+    const settings = JSON.parse(serialized);
+    for (const user of settings.codebolt_users) assert.equal(user.active_project_path, '/home/user/env-b64c3987');
+    assert.deepEqual(settings.codebolt_userprofiles, source.codebolt_userprofiles);
+    assert.deepEqual(settings.projectHistory, source.projectHistory);
+    assert.equal(settings.projectConfig, '/home/user/env-b64c3987/.codebolt/projectState.json');
+  }
+  assert.equal(source.codebolt_users[1].active_project_path, '/Users/host/codeboltjs');
+});
+
+test('preserves settings without user profiles', () => {
+  const { helpers } = fixture();
+  const source = { theme: 'dark', endpoint: 'https://example.test' };
+  assert.deepEqual(JSON.parse(helpers.prepareSandboxGlobalSettings(JSON.stringify(source), '/host', '/home/user/project')), source);
 });

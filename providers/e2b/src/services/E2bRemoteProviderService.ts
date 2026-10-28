@@ -11,7 +11,7 @@ import {
 import WebSocket from 'ws';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
 import { uploadFileToSandbox } from '../utils/uploadFile';
-import { prepareSandboxChatMessage, requestSandboxAgentStart, rebaseSandboxSettings } from '../utils/sandboxChat';
+import { prepareSandboxChatMessage, requestSandboxAgentStart, rebaseSandboxSettings, prepareSandboxGlobalSettings } from '../utils/sandboxChat';
 
 let _SandboxClass: any = null;
 let _DesktopSandboxClass: any = null;
@@ -47,7 +47,7 @@ interface E2bProviderConfig {
     cleanup?: number;
     /** Per-chunk binary upload request deadline in milliseconds. */
     uploadRequest?: number;
-    /** Deadline for the sandbox's confirmed thread-start response. */
+    /** Deadline for a thread-start response or legacy dispatch acknowledgement. */
     agentStart?: number;
   };
 }
@@ -459,7 +459,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     const message = prepareSandboxChatMessage(agentMessage as any, this.sandboxWorkspacePath);
     this.logger.log('Requesting sandbox agent startup via createAndStartThread, threadId:', message.params.threadId || 'new');
     const result = await requestSandboxAgentStart(socket, message, this.providerConfig.timeouts?.agentStart);
-    this.logger.log('Sandbox agent startup confirmed, threadId:', result.threadId);
+    this.logger.log('Sandbox agent startup accepted, threadId:', result.threadId, 'acknowledgement:', result.type);
   }
 
   async onRawMessage(message: any): Promise<void> {
@@ -1565,7 +1565,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       try {
         const settingsContent = await fs.readFile(globalSettingsPath, 'utf-8');
         await this.sandbox.commands.run('mkdir -p /home/user/.codebolt');
-        await this.sandbox.files.write('/home/user/.codebolt/settings.json', rebaseSandboxSettings(settingsContent, this.baseProjectPath, this.sandboxWorkspacePath));
+        await this.sandbox.files.write('/home/user/.codebolt/settings.json', prepareSandboxGlobalSettings(settingsContent, this.baseProjectPath, this.sandboxWorkspacePath));
         this.logger.log('Uploaded global settings.json to sandbox');
       } catch {
         this.logger.log('No global settings.json found at:', globalSettingsPath);
