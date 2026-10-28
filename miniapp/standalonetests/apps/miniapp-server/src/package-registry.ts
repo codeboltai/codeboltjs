@@ -10,6 +10,12 @@ export async function installPackage(env: Env, bytes: ArrayBuffer) {
       httpMetadata: { contentType: "application/vnd.codebolt.miniapp" },
       customMetadata: { miniAppId: parsed.manifest.id, version: parsed.manifest.version },
     });
+    await Promise.all([...parsed.files.values()].filter((file) => file.kind === "asset").map((file) => {
+      const path = file.path.replace(/^public\//, "");
+      return env.MINIAPP_PACKAGES.put(`assets/${parsed.packageId}/${path}`, file.data, {
+        httpMetadata: { contentType: file.mediaType },
+      });
+    }));
   }
   return { packageId: parsed.packageId, manifest: parsed.manifest, bytes: parsed.byteLength, existing: Boolean(existing) };
 }

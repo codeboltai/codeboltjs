@@ -6,6 +6,29 @@ function defineTool(definition) {
 	};
 }
 const runtimeSymbol = Symbol.for("codebolt.miniapp.runtime");
+function nativeContext(event) {
+	const runtime = event?.req.runtime?.cloudflare?.env?.CODEBOLT_MINIAPP_RUNTIME;
+	if (!runtime) return null;
+	const unavailable = async () => {
+		throw new Error("MINIAPP_TASK_SERVICE_UNAVAILABLE");
+	};
+	return {
+		miniAppId: runtime.instance.miniAppId,
+		installId: runtime.instance.instanceId,
+		workspaceId: runtime.instance.scopeId,
+		principal: runtime.principal ?? {
+			userId: "miniapp-runtime",
+			roles: []
+		},
+		db: runtime.db,
+		blob: runtime.blob,
+		codebolt: { tasks: runtime.codebolt?.tasks ?? {
+			create: unavailable,
+			list: unavailable,
+			count: unavailable
+		} }
+	};
+}
 function decodeClaims(token) {
 	const payload = token.split(".")[1];
 	if (!payload) throw new Error("INVALID_EXECUTION_TOKEN");
@@ -18,7 +41,7 @@ function remoteBridge(event) {
 	const token = event.req.headers.get("x-codebolt-execution-token") ?? event.req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
 	const processEnvironment = globalThis.process?.env;
 	const workerEnvironment = globalThis.__env__;
-	const cloudUrl = processEnvironment?.CODEBOLT_CLOUD_URL ?? workerEnvironment?.CODEBOLT_CLOUD_URL;
+	const cloudUrl = event.req.headers.get("x-codebolt-cloud-url") ?? event.req.headers.get("x-codebolt-capability-url") ?? processEnvironment?.CODEBOLT_CLOUD_URL ?? workerEnvironment?.CODEBOLT_CLOUD_URL;
 	if (!token || !cloudUrl) throw new Error("Remote MiniApp execution context is unavailable.");
 	const claims = decodeClaims(token);
 	const principal = claims.principal ?? {
@@ -53,6 +76,8 @@ function getBridge(event) {
 	throw new Error("MiniApp runtime context is unavailable.");
 }
 function useMiniApp(event) {
+	const native = nativeContext(event);
+	if (native) return native;
 	const bridge = getBridge(event);
 	return {
 		...bridge.getContext(),

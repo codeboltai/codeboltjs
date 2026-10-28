@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create CodeBolt MiniApp"
+  short_description: "Build and deploy production CodeBolt MiniApps"
+  default_prompt: "Use $create-miniapp to create and validate a production-ready CodeBolt MiniApp."

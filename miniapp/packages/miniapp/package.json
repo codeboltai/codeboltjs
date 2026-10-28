@@ -1,10 +1,22 @@
 {
   "name": "@codebolt/miniapp",
-  "private": true,
+  "version": "0.1.2",
   "type": "module",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./src/index.ts",
-    "./nitro": "./src/nitro.ts"
+    "./nitro": "./src/nitro.ts",
+    "./bundle": "./src/bundle.mjs",
+    "./bundle-cli": "./src/bundle-cli.mjs"
+  },
+  "bin": {
+    "codebolt-miniapp-bundle": "src/bundle-cli.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",

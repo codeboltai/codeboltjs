@@ -3,15 +3,17 @@
 `@codebolt/miniapp` is the authoring SDK and Nitro build adapter for CodeBolt
 MiniApps.
 
-The package has two public entry points:
+The package has three library entry points plus a command-line entry:
 
 ```text
 @codebolt/miniapp        # MiniApp author/runtime API
 @codebolt/miniapp/nitro  # Nitro build adapter
+@codebolt/miniapp/bundle # .miniapp archive builder and verifier
+codebolt-miniapp-bundle  # pack, inspect, and verify commands
 ```
 
-Use the root export from MiniApp code. Use the `./nitro` export only from
-`nitro.config.ts`.
+Use the root export from MiniApp code, the `./nitro` export only from
+`nitro.config.ts`, and the `./bundle` export only from Node-side build tooling.
 
 ## Root Export
 
@@ -207,6 +209,19 @@ This package intentionally keeps two concepts separate:
 
 - Root export: stable MiniApp authoring/runtime API.
 - `./nitro` export: Nitro-specific build-time adapter.
+- `./bundle` export: Node-side packaging of `cloudflare-module` output into the generic MiniApp Server ABI.
+
+## Cloud Bundle Build
+
+Build the normal Cloudflare module output, then package it without deploying a separate Worker:
+
+```powershell
+$env:MINIAPP_TARGET='cloudflare'
+npm run build
+npx codebolt-miniapp-bundle pack .output-cloudflare --output dist/my-app.miniapp
+```
+
+The archive contains Nitro's complete module graph, public assets, CodeBolt manifest metadata, checksums, and a generated `codebolt.fetch.v1` adapter. It does not contain a Durable Object class; the shared MiniApp Server injects that lifecycle at install time.
 
 That allows app code to stay framework-neutral while keeping the current Nitro
 integration explicit and easy to customize in `nitro.config.ts`.

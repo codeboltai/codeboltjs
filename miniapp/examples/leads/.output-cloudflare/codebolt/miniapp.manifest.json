@@ -3,6 +3,9 @@
   "id": "leads",
   "title": "Lead Depository",
   "version": "0.1.0",
+  "description": "",
+  "installPolicy": "developer_only",
+  "defaultAccess": "private",
   "ui": {
     "title": "Lead Depository",
     "route": "/"

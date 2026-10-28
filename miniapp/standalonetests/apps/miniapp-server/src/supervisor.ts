@@ -111,20 +111,25 @@ export class MiniAppSupervisor extends DurableObject<Env> {
       return new Response(request.method === "HEAD" ? null : asset.data, { headers: { "content-type": asset.mediaType, "cache-control": "public, max-age=60" } });
     }
 
-    const modules: Record<string, { js: string }> = {};
+    const modules: Record<string, { js?: string; text?: string; data?: ArrayBuffer; wasm?: ArrayBuffer } | string> = {};
     for (const file of parsed.files.values()) {
       if (file.kind === "module") modules[file.path] = { js: decoder.decode(file.data) };
+      else if (file.kind === "json") modules[file.path] = decoder.decode(file.data);
+      else if (file.kind === "text") modules[file.path] = { text: decoder.decode(file.data) };
+      else if (file.kind === "data") modules[file.path] = { data: file.data.slice().buffer };
+      else if (file.kind === "wasm") modules[file.path] = { wasm: file.data.slice().buffer };
     }
     const wrapperName = "__miniapp_server_runtime.mjs";
     modules[wrapperName] = { js: runtimeWrapper(parsed.manifest.runtime.mainModule) };
     const storage = this.env.MINIAPP_STORAGE.getByName(`${record.scopeId}:${id}`);
+    const assets = this.ctx.exports.MiniAppAssets({ props: { packageId: record.packageId } });
     const workerId = `${this.ctx.id.toString()}:${id}:${record.packageId}:${record.revision}`;
     const worker = this.env.MINIAPP_LOADER.get(workerId, async () => ({
       compatibilityDate: parsed.manifest.runtime.compatibilityDate,
       compatibilityFlags: parsed.manifest.runtime.compatibilityFlags || [],
       mainModule: wrapperName,
       modules,
-      env: { INSTANCE: { scopeId: record.scopeId, instanceId: id, packageId: record.packageId, miniAppId: record.miniAppId, version: record.version }, STORAGE: storage },
+      env: { INSTANCE: { scopeId: record.scopeId, instanceId: id, packageId: record.packageId, miniAppId: record.miniAppId, version: record.version }, STORAGE: storage, ASSETS: assets },
       globalOutbound: null,
       limits: { cpuMs: 100, subRequests: 50 },
     }));

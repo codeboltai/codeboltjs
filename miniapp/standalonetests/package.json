@@ -11,12 +11,16 @@
     "pack:hello": "node packages/miniapp-cli/src/cli.mjs pack apps/hello-miniapp --output dist/hello-miniapp.miniapp",
     "inspect:hello": "node packages/miniapp-cli/src/cli.mjs inspect dist/hello-miniapp.miniapp",
     "verify:hello": "node packages/miniapp-cli/src/cli.mjs verify dist/hello-miniapp.miniapp",
-    "test": "node --test tests",
-    "test:wrangler": "node scripts/wrangler-integration.mjs",
+    "build:nitro": "nitro build apps/nitro-miniapp",
+    "pack:nitro": "node packages/nitro-adapter/src/cli.mjs pack apps/nitro-miniapp/.output-miniapp --output dist/nitro-miniapp.miniapp",
+    "prepare:fixtures": "pnpm pack:hello && pnpm build:nitro && pnpm pack:nitro",
+    "test": "pnpm prepare:fixtures && node --test tests/*.test.mjs",
+    "test:wrangler": "pnpm prepare:fixtures && node scripts/wrangler-integration.mjs",
     "dev:server": "wrangler dev --config apps/miniapp-server/wrangler.jsonc --local",
     "deploy:server": "wrangler deploy --config apps/miniapp-server/wrangler.jsonc"
   },
   "devDependencies": {
+    "nitro": "3.0.260610-beta",
     "wrangler": "4.114.0"
   }
 }

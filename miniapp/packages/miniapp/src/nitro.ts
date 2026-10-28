@@ -15,6 +15,9 @@ export interface MiniAppModuleOptions {
   title: string;
   version?: string;
   route?: string;
+  description?: string;
+  installPolicy?: "developer_only" | "anyone" | "unlisted";
+  defaultAccess?: "private" | "authenticated" | "public";
 }
 
 type Definition = ToolDefinition | CollectionDefinition;
@@ -199,7 +202,7 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
       ).replaceAll("\\", "/");
       nitro.options.handlers.push({
         route: "/__codebolt/tools/:name",
-        method: "post",
+        method: "POST",
         handler: toolHandler,
       });
 
@@ -219,6 +222,9 @@ export function codeboltMiniApp(options: MiniAppModuleOptions): NitroModule {
           id: options.id,
           title: options.title,
           version: options.version ?? "0.0.0",
+          description: options.description ?? "",
+          installPolicy: options.installPolicy ?? "developer_only",
+          defaultAccess: options.defaultAccess ?? "private",
           ui: {
             title: options.title,
             route: options.route ?? "/",

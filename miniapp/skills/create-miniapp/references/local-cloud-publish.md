@@ -1,50 +1,48 @@
 # Local And Cloud MiniApp Usage
 
-Use this reference when publishing, installing, or explaining how MiniApps run
-locally and in CodeBolt Cloud.
+## Contents
+
+- [Runtime Types](#runtime-types)
+- [Local Development](#local-development)
+- [Dedicated Cloud Deployment](#dedicated-cloud-deployment)
+- [Cloudflare Bundle Deployment](#cloudflare-bundle-deployment)
+- [Catalog And Installation](#catalog-and-installation)
+- [Tool Execution](#tool-execution)
+- [Access Model](#access-model)
+
+## Runtime Types
+
+CodeBolt uses an explicit deployment discriminator:
+
+```text
+platformworker  separately deployed provider Worker/application
+miniappbundle   package loaded by the shared Cloudflare MiniApp Server
+```
+
+Do not infer runtime type from URL shape. Missing legacy type defaults to
+`platformworker` only for backward compatibility.
 
 ## Local Development
 
-Build the MiniApp first. The required output contract is:
+Build the app with its detected package manager. The local output contract is:
 
 ```text
-<miniappRoot>/.output/codebolt/miniapp.manifest.json
+<miniapp-root>/.output/codebolt/miniapp.manifest.json
 ```
 
-Typical commands:
+The CodeBolt local MiniApp host owns one port, serves static assets directly,
+and lazily starts the app worker for API/tool requests. It should discover apps
+from configured directories or caller-provided roots; do not encode a known
+example path into reusable scripts.
 
-```powershell
-npm install
-npm run build
-```
-
-In the prototype repo:
-
-```powershell
-pnpm --dir examples/lead-react build
-pnpm start
-```
-
-The local host discovers built apps from a parent directory:
-
-```powershell
-node packages/host/src/cli.mjs --dir examples
-```
-
-or from explicit app roots:
-
-```powershell
-node packages/host/src/cli.mjs examples/leads examples/lead-react
-```
-
-Local routes:
+Typical host routes are:
 
 ```text
-http://<appId>.localhost:4310
-GET  /__codebolt/tools
+http://<app-id>.localhost:<host-port>/
 GET  /__codebolt/status
-POST /__codebolt/tools/<appId>.<toolName>
-POST /__codebolt/apps/<appId>/reload
+GET  /__codebolt/tools
+POST /__codebolt/tools/<app-id>.<tool-name>
+POST /__codebolt/apps/<app-id>/reload
 ```
 
 Resolve API paths against the page URL in UI code. A leading slash such as
@@ -74,20 +72,10 @@ ALL  /miniapps/:id/api/*
 ALL  /miniapps/:id/__codebolt/*
 ```
 
-Agent-side MiniApp operations are `miniapp.*` messages:
+Use relative UI requests such as `fetch("/api/items")`.
 
-```text
-miniapp.list
-miniapp.openUi
-miniapp.reload
-miniapp.howToCreate
-miniapp.createStarter
-```
+## Dedicated Cloud Deployment
 
-Common failure modes:
-
-```text
-503 MINIAPP_UNHEALTHY              crash breaker open; POST /api/miniapps/:id/reload
 HTML where JSON was expected       UI used a host-absolute path; make it
                                    document-relative (see above)
 500 only on body-bearing requests  runtime-global assumptions in the handler
@@ -116,39 +104,95 @@ provider credentials live on the admin-managed deploy provider worker.
 Use the CodeBolt CLI:
 
 ```powershell
-codebolt miniapp deploy <miniapp-root> `
-  --token $env:CODEBOLT_AUTH_TOKEN `
-  --platform deno-subhosting `
+codebolt action miniapp deploy <miniapp-root> `
+  --default-access private
+```
+
+Important options:
+
+```text
+--cloud-url <url>         default: https://api.codebolt.ai
+--token <token>           or configured CodeBolt login/environment token
+--no-build                upload existing target output
+--provider <provider-id>  external deployment provider
+--platform <platform-id>  deno-subhosting | vercel-platform | netlify
+--output-dir <dir>        override built output directory
+--install-policy <mode>   developer_only | anyone | unlisted
+--default-access <mode>   private | authenticated | public
+--json                    emit machine-readable result
+```
+
+The CLI posts the provider deployment to:
+
+```text
+POST /api/miniapps/deployments
+```
+
+Provider credentials belong to the admin-managed provider Worker, not the
+MiniApp or user project.
+
+## Cloudflare Bundle Deployment
+
+Use the shared bundle runtime when the MiniApp should not become a separately
+deployed Worker.
+
+Build only:
+
+```powershell
+codebolt action miniapp bundle build <miniapp-root>
+```
+
+This builds Nitro's `cloudflare-module` output and creates a deterministic
+`.miniapp` archive. Use `--no-build` to package an existing
+`.output-cloudflare` directory and `--output <file>` to choose the archive.
+
+Verify independently:
+
+```powershell
+codebolt-miniapp-bundle inspect <archive.miniapp>
+codebolt-miniapp-bundle verify <archive.miniapp>
+```
+
+Build, upload, and register:
+
+```powershell
+codebolt action miniapp bundle deploy <miniapp-root> `
   --install-policy anyone `
   --default-access private
 ```
 
-Options to know:
+Bundle deployment posts raw `application/vnd.codebolt.miniapp` bytes to:
 
 ```text
---cloud-url <url>         default: https://api.codebolt.ai
---token <token>           or CODEBOLT_AUTH_TOKEN / CODEBOLT_CLOUD_AUTH_TOKEN
---no-build                skip npm run build
---provider <providerId>   deploy provider id
---platform <platformId>   deno-subhosting | vercel-platform | netlify
---output-dir <dir>        built output directory, default .output
---install-policy <policy> developer_only | anyone | unlisted
---default-access <access> private | authenticated | public
---json                    print raw deployment JSON
+POST /api/miniapps/bundle-deployments
 ```
 
-The CLI posts to:
+The Edge API uploads the package to the shared MiniApp Server, persists app,
+version, tools, and `miniappbundle` deployment metadata, then returns the
+package and deployment identifiers.
+
+The archive contains app code, the complete Nitro module graph, assets,
+manifest, checksums, and the fetch adapter. It does not contain a Durable Object
+class or server management API.
+
+## Catalog And Installation
+
+Publishing creates catalog metadata. Installation creates the isolated runtime
+identity:
 
 ```text
-POST https://api.codebolt.ai/api/miniapps/deployments
+Published app: appId + versionId + deploymentId + packageId
+Installed app: installId + workspaceId + access + runtime URL
 ```
 
-Edge API selects a deploy provider, stores the app/version/deployment in D1, and
-returns the registered app and deployment ids.
+For a bundle install, Edge provisions or updates the matching shared-server
+instance before returning success. Use one isolated instance per install/thread
+scope. Uninstall removes the bundle instance and disables the install record.
 
-## Portal Flow
+The MiniApp Router remains the browser-facing boundary. Never give the browser
+the MiniApp Server management URL.
 
-Portal menus are lifecycle-based:
+Portal lifecycle surfaces:
 
 ```text
 Registry -> MiniApps -> All MiniApps
@@ -156,59 +200,48 @@ Registry -> MiniApps -> My MiniApps
 Agents   -> Installed MiniApps
 ```
 
-Use `All MiniApps` for catalog/install discovery. Use `My MiniApps` for apps
-published by the signed-in user. Use `Installed MiniApps` for apps installed
-into the user's workspace and ready for runtime/tool use.
+## Tool Execution
 
-## Cloud Tool Use
-
-Cloud installed MiniApp tools are exposed through the CodeBolt server tool
-registry by fetching:
+Local registered tool ids commonly look like:
 
 ```text
-GET /api/miniapps/installs
+miniapp.<app-id>.<tool-name>
 ```
 
-Tool execution goes through:
+Cloud installed tool ids commonly look like:
+
+```text
+miniapp.cloud.<install-id>.<tool-name>
+```
+
+Cloud execution goes through:
 
 ```text
 POST /api/miniapps/installs/:installId/tools/:toolName/execute
 ```
 
-Cloud tool ids are shaped like:
-
-```text
-miniapp.cloud.<installId>.<toolName>
-```
-
-The runtime receives verified execution context:
-
-```text
-miniAppId
-installId
-workspaceId
-principal.userId
-```
-
-Never let MiniApp input override those identity fields.
+For `platformworker`, Edge issues a short-lived execution token and calls the
+dedicated runtime. For `miniappbundle`, Edge calls the installed shared-server
+instance through its authenticated internal route. Both inject the same
+MiniApp context.
 
 ## Access Model
 
-Published app install policy:
+Catalog installation policy:
 
 ```text
-developer_only
-anyone
-unlisted
+developer_only  only the publisher can install
+anyone          catalog users can install
+unlisted        installation requires direct discovery/permission
 ```
 
-Per-install access:
+Per-install runtime access:
 
 ```text
-private
-authenticated
-public
+private          owning user/workspace only
+authenticated    any signed-in CodeBolt user
+public           anonymous runtime access
 ```
 
-Keep these separate. Install policy decides who can install a catalog app.
-Access decides who can use an installed runtime/tool surface.
+Keep these concepts separate. Never temporarily expose private production data
+as `public` merely to make a smoke test easier.
