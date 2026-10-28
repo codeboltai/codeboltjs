@@ -18,21 +18,28 @@
 
 import { TemplateBase, Template, defaultBuildLogger } from 'e2b';
 import { config } from 'dotenv';
+import * as fs from 'node:fs';
 
 config();
 
-const CLI_VERSION = '1.12.91';
+const CLI_VERSION = process.env.CODEBOLT_CLI_VERSION || '1.12.91';
+const TEMPLATE_NAME = process.env.E2B_TEMPLATE_NAME || 'codebolt-remote-execution';
 const BUILD_MEMORY_MB = Number(process.env.E2B_TEMPLATE_BUILD_MEMORY_MB || 4096);
 
 async function main() {
+  if (!/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(CLI_VERSION)) throw new Error('CODEBOLT_CLI_VERSION must be an exact version');
   console.log(`Building E2B template (node:22-trixie + codebolt@${CLI_VERSION})...\n`);
 
-  const template = new TemplateBase()
+  const verifyRuntime = 'const fs=require("fs");const code=fs.readFileSync(process.argv[1],"utf8");if(!code.includes("asyncTask.listResponse")||!code.includes("asyncTask.controlResponse"))throw new Error("CLI runtime lacks asyncTask API");console.log("Verified CLI asyncTask API")';
+  const template = new TemplateBase({ fileContextPath: __dirname })
     .fromImage('node:22-trixie')
     .aptInstall(['curl', 'git', 'unzip', 'jq'])
-    .runCmd(`ONNXRUNTIME_NODE_INSTALL=skip npm install -g codebolt@${CLI_VERSION}`, { user: 'root' });
+    .runCmd(`ONNXRUNTIME_NODE_INSTALL=skip npm install -g codebolt@${CLI_VERSION}`, { user: 'root' })
+    .copy('provider-gateway-compat.cjs', '/tmp/provider-gateway-compat.cjs', { user: 'root' })
+    .runCmd('node /tmp/provider-gateway-compat.cjs "$(npm root -g)/codebolt/dist/index.js"', { user: 'root' })
+    .runCmd(`node -e '${verifyRuntime}' "$(npm root -g)/codebolt/dist/index.js"`, { user: 'root' });
 
-  const buildInfo = await Template.build(template, 'codebolt-remote-execution', {
+  const buildInfo = await Template.build(template, TEMPLATE_NAME, {
     cpuCount: 2,
     memoryMB: BUILD_MEMORY_MB,
     onBuildLogs: defaultBuildLogger(),
@@ -44,6 +51,9 @@ async function main() {
   console.log(`   Name:        ${buildInfo.name}`);
   console.log('\nSet this in your config:');
   console.log(`   export E2B_SANDBOX_TEMPLATE=${buildInfo.templateId}`);
+  if (process.env.E2B_TEMPLATE_RESULT_PATH) {
+    fs.writeFileSync(process.env.E2B_TEMPLATE_RESULT_PATH, JSON.stringify(buildInfo, null, 2));
+  }
 }
 
 main().catch(err => {

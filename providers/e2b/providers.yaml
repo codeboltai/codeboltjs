@@ -8,7 +8,7 @@ runtime: node
 config:
   pluginPort: 3100
   e2bApiKey: ""
-  sandboxTemplate: "dwss02awnos2d3sva6pw"
+  sandboxTemplate: "f530qwh8abyhz6skzhnz"
   autoStopInterval: 0
 capabilities:
   screenAccess:
