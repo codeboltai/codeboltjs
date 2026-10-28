@@ -5,6 +5,7 @@ const providerService = new E2bRemoteProviderService({
   pluginPort: parseInt(process.env.REMOTE_EXECUTION_PORT || '', 10) || undefined,
   codeboltStartCommand: process.env.CODEBOLT_START_CMD || undefined,
   sandboxTemplate: process.env.E2B_SANDBOX_TEMPLATE || 'k4u1tkiz5x2hpj0x4l1x',
+  desktopSandboxTemplate: process.env.E2B_DESKTOP_SANDBOX_TEMPLATE || 'w017ynr7hiro2ufayd7l',
 });
 const handlers = providerService.getEventHandlers();
 

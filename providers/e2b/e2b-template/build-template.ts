@@ -24,20 +24,23 @@ import * as path from 'node:path';
 config();
 
 const CLI_VERSION = process.env.CODEBOLT_CLI_VERSION || '1.12.91';
-const TEMPLATE_NAME = process.env.E2B_TEMPLATE_NAME || 'codebolt-remote-execution';
+const DESKTOP = process.env.E2B_TEMPLATE_DESKTOP === 'true';
+const TEMPLATE_NAME = process.env.E2B_TEMPLATE_NAME || (DESKTOP ? 'codebolt-desktop-execution' : 'codebolt-remote-execution');
 // Use a local npm archive when testing server changes before publishing a CLI.
 const CLI_ARCHIVE = process.env.CODEBOLT_CLI_ARCHIVE ? path.resolve(process.env.CODEBOLT_CLI_ARCHIVE) : undefined;
 const BUILD_MEMORY_MB = Number(process.env.E2B_TEMPLATE_BUILD_MEMORY_MB || 4096);
 
 async function main() {
   if (!/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(CLI_VERSION)) throw new Error('CODEBOLT_CLI_VERSION must be an exact version');
-  console.log(`Building E2B template (node:22-trixie + codebolt@${CLI_VERSION})...\n`);
+  console.log(`Building E2B ${DESKTOP ? 'desktop' : 'headless'} template with codebolt@${CLI_VERSION}...\n`);
 
   const verifyRuntime = 'const fs=require("fs");const code=fs.readFileSync(process.argv[1],"utf8");if(!code.includes("asyncTask.listResponse")||!code.includes("asyncTask.controlResponse"))throw new Error("CLI runtime lacks asyncTask API");if(!code.includes("providerApprovalReplyResponse"))throw new Error("CLI runtime lacks approval replies; set CODEBOLT_CLI_ARCHIVE to the rebuilt CLI package");console.log("Verified CLI asyncTask and approval APIs")';
   if (CLI_ARCHIVE && !fs.existsSync(CLI_ARCHIVE)) throw new Error('CODEBOLT_CLI_ARCHIVE was not found');
-  let template = new TemplateBase({ fileContextPath: __dirname })
-    .fromImage('node:22-trixie')
-    .aptInstall(['curl', 'git', 'unzip', 'jq']);
+  const base = new TemplateBase({ fileContextPath: __dirname });
+  let template = DESKTOP
+    ? base.fromTemplate('desktop').aptInstall(['curl', 'git', 'unzip', 'jq', 'xz-utils'])
+      .runCmd('curl -fsSL https://nodejs.org/dist/v22.20.0/node-v22.20.0-linux-x64.tar.xz -o /tmp/codebolt-node.tar.xz && tar -xJf /tmp/codebolt-node.tar.xz --strip-components=1 -C /usr/local && node --version', { user: 'root' })
+    : base.fromImage('node:22-trixie').aptInstall(['curl', 'git', 'unzip', 'jq']);
   if (CLI_ARCHIVE) {
     const localName = 'codebolt-local.tgz';
     const contextArchive = path.join(__dirname, localName);
@@ -60,7 +63,7 @@ async function main() {
   console.log(`   Build ID:    ${buildInfo.buildId}`);
   console.log(`   Name:        ${buildInfo.name}`);
   console.log('\nSet this in your config:');
-  console.log(`   export E2B_SANDBOX_TEMPLATE=${buildInfo.templateId}`);
+  console.log(`   export ${DESKTOP ? 'E2B_DESKTOP_SANDBOX_TEMPLATE' : 'E2B_SANDBOX_TEMPLATE'}=${buildInfo.templateId}`);
   if (process.env.E2B_TEMPLATE_RESULT_PATH) {
     fs.writeFileSync(process.env.E2B_TEMPLATE_RESULT_PATH, JSON.stringify(buildInfo, null, 2));
   }

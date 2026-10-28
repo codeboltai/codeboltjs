@@ -10,6 +10,7 @@ config:
   pluginPort: 3100
   e2bApiKey: ""
   sandboxTemplate: "k4u1tkiz5x2hpj0x4l1x"
+  desktopSandboxTemplate: "w017ynr7hiro2ufayd7l"
   autoStopInterval: 0
 capabilities:
   screenAccess:

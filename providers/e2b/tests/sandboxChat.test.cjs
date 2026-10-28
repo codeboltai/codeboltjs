@@ -7,7 +7,7 @@ const { EventEmitter } = require('node:events');
 const root = process.env.E2B_PROVIDER_ROOT || path.resolve(__dirname, '..');
 const ts = require(require.resolve('typescript', { paths: [root] }));
 
-function fixture(config) {
+function fixture(config, sdkOverrides = {}) {
   class Socket extends EventEmitter {
     static OPEN = 1;
     static instances = [];
@@ -62,6 +62,8 @@ function fixture(config) {
     mod.require = name => {
       if (name === '@codebolt/provider') return { BaseProvider };
       if (name === 'ws') return Socket;
+      if (name === '@e2b/desktop' && sdkOverrides.desktop) return { Sandbox: sdkOverrides.desktop };
+      if (name === '@e2b/code-interpreter' && sdkOverrides.headless) return { Sandbox: sdkOverrides.headless };
       if (name === '../utils/logger') return { createPrefixedLogger: () => logger };
       if (name.startsWith('.')) {
         const target = path.resolve(path.dirname(filename), `${name}.ts`);
@@ -417,4 +419,43 @@ test('preserves settings without user profiles', () => {
   const { helpers } = fixture();
   const source = { theme: 'dark', endpoint: 'https://example.test' };
   assert.deepEqual(JSON.parse(helpers.prepareSandboxGlobalSettings(JSON.stringify(source), '/host', '/home/user/project')), source);
+});
+
+
+test('uses the configured CodeBolt desktop template for screen access and preserves headless selection', async () => {
+  for (const screenAccess of [true, false]) {
+    const rootDir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'codebolt-desktop-template-'));
+    const desktopCalls = [], headlessCalls = [];
+    let streamStarted = false;
+    const sandbox = { sandboxId: 'new-sandbox', commands: { run: async () => ({stdout:''}) }, stream: {start:async()=>{streamStarted=true;}} };
+    const {service} = fixture({ sandboxTemplate:'headless-custom', desktopSandboxTemplate:'desktop-custom' }, {
+      desktop: {create:async (...args)=>{desktopCalls.push(args);return sandbox;}},
+      headless: {create:async (...args)=>{headlessCalls.push(args);return sandbox;}},
+    });
+    service.screenAccessEnabled=screenAccess;
+    service.state.projectPath=rootDir;
+    service.getPersistedResourceId=()=>undefined;
+    service.setEnvironmentResourceId=()=>{};
+    try {
+      await service.setupEnvironment({environmentName:'test',screenAccess:{resolution:{width:1440,height:900}}});
+      const calls=screenAccess?desktopCalls:headlessCalls;
+      assert.equal(calls.length,1);
+      assert.equal(calls[0][0],screenAccess?'desktop-custom':'headless-custom');
+      assert.equal((screenAccess?headlessCalls:desktopCalls).length,0);
+      assert.equal(streamStarted,screenAccess);
+      if(screenAccess) assert.deepEqual(calls[0][1].resolution,[1440,900]);
+    } finally {fs.rmSync(rootDir,{recursive:true,force:true});}
+  }
+});
+
+test('rejects an empty desktop template instead of creating an unprepared desktop image', async () => {
+  const rootDir=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'codebolt-desktop-missing-'));
+  let created=false;
+  const {service}=fixture({desktopSandboxTemplate:''},{desktop:{create:async()=>{created=true;}}});
+  service.screenAccessEnabled=true;service.state.projectPath=rootDir;
+  service.getPersistedResourceId=()=>undefined;
+  try {
+    await assert.rejects(service.setupEnvironment({environmentName:'test'}),/desktopSandboxTemplate/);
+    assert.equal(created,false);
+  } finally {fs.rmSync(rootDir,{recursive:true,force:true});}
 });

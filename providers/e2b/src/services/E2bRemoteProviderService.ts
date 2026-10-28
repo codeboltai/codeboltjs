@@ -37,6 +37,8 @@ interface E2bProviderConfig {
   /** E2B sandbox template ID. The template should have codebolt pre-installed.
    *  This is the recommended approach — avoids runtime installs. */
   sandboxTemplate?: string;
+  /** Desktop template with both E2B desktop services and CodeBolt installed. */
+  desktopSandboxTemplate?: string;
   autoStopInterval?: number;
   /** Custom command to start codebolt in the sandbox.
    *  When empty/undefined, uses `npx codebolt start --headless`. */
@@ -98,6 +100,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       pluginPort: config.pluginPort ?? 3100,
       e2bApiKey: config.e2bApiKey ?? process.env.E2B_API_KEY,
       sandboxTemplate: config.sandboxTemplate ?? 'codebolt-remote-execution',
+      desktopSandboxTemplate: config.desktopSandboxTemplate ?? 'w017ynr7hiro2ufayd7l',
       autoStopInterval: config.autoStopInterval ?? 0,
       codeboltStartCommand: config.codeboltStartCommand,
       timeouts: {
@@ -268,7 +271,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   async onProviderStart(initVars: ProviderInitVars): Promise<ProviderStartResult> {
     this.logger.log('Starting provider with environment:', initVars.environmentName);
     this.bootstrapResult = undefined;
-    this.logger.log('onProviderStart initVars:', JSON.stringify(initVars, null, 2));
+    this.logger.log('Starting environment:', initVars.environmentName, 'screenAccess:', Boolean((initVars as any).screenAccess?.enabled));
 
     const projectPath = initVars.projectPath as string | undefined;
     if (!projectPath) {
@@ -299,6 +302,9 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (runtimeConfig?.sandboxTemplate) {
       this.providerConfig.sandboxTemplate = runtimeConfig.sandboxTemplate;
     }
+    if (runtimeConfig?.desktopSandboxTemplate) {
+      this.providerConfig.desktopSandboxTemplate = runtimeConfig.desktopSandboxTemplate;
+    }
     if (runtimeConfig?.autoStopInterval !== undefined) {
       this.providerConfig.autoStopInterval = runtimeConfig.autoStopInterval;
     }
@@ -306,7 +312,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (uploadRequestTimeout !== undefined) {
       this.providerConfig.timeouts!.uploadRequest = uploadRequestTimeout;
     }
-    this.logger.log('Using E2B sandbox template:', this.providerConfig.sandboxTemplate);
+    this.logger.log('Using E2B sandbox template:', this.screenAccessEnabled ? this.providerConfig.desktopSandboxTemplate : this.providerConfig.sandboxTemplate);
     const rmrSourceType = this.getRequestedRmrSourceType(initVars as any);
 
     // Custom startup order: sandbox first, then CodeBolt, then transport.
@@ -333,7 +339,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     //    The direct execution gateway acts as a transparent bridge. The
     //    codebolt application in the remote sandbox owns the narrative engine
     //    and performs the import + checkout.
-    this.logger.log('initVars for narrative bundle import:', JSON.stringify(initVars, null, 2));
+    this.logger.log('Preparing narrative bundle for environment:', initVars.environmentName);
     const narrativeBundlePath = (initVars as any).narrativeBundlePath as string | undefined;
     this.logger.log(`Pre-narrative WS state: wsConnection=${!!this.agentServer.wsConnection}, readyState=${this.agentServer.wsConnection?.readyState ?? 'N/A'}, isConnected=${this.agentServer.isConnected}`);
     if (narrativeBundlePath && this.sandbox) {
@@ -1479,7 +1485,10 @@ export class E2bRemoteProviderService extends BaseProvider {
       const SandboxCls = this.screenAccessEnabled ? await getE2bDesktopSandbox() : await getE2bSandbox();
       if (this.screenAccessEnabled) {
         const requestedResolution = (initVars as any).screenAccess?.resolution;
-        this.sandbox = await SandboxCls.create({
+        if (!this.providerConfig.desktopSandboxTemplate?.trim()) {
+          throw new Error('Screen access requires a desktopSandboxTemplate with CodeBolt pre-installed. Build it with E2B_TEMPLATE_DESKTOP=true.');
+        }
+        this.sandbox = await SandboxCls.create(this.providerConfig.desktopSandboxTemplate, {
           ...createParams,
           resolution: [requestedResolution?.width || 1280, requestedResolution?.height || 720],
           dpi: 96,
