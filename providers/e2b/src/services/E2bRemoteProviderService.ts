@@ -10,6 +10,8 @@ import {
 } from '@codebolt/provider';
 import WebSocket from 'ws';
 import { createPrefixedLogger, type Logger } from '../utils/logger';
+import { uploadFileToSandbox } from '../utils/uploadFile';
+import { prepareSandboxChatMessage, requestSandboxAgentStart, rebaseSandboxSettings } from '../utils/sandboxChat';
 
 let _SandboxClass: any = null;
 let _DesktopSandboxClass: any = null;
@@ -43,6 +45,10 @@ interface E2bProviderConfig {
     codeboltStartup?: number;
     wsConnection?: number;
     cleanup?: number;
+    /** Per-chunk binary upload request deadline in milliseconds. */
+    uploadRequest?: number;
+    /** Deadline for the sandbox's confirmed thread-start response. */
+    agentStart?: number;
   };
 }
 
@@ -98,6 +104,8 @@ export class E2bRemoteProviderService extends BaseProvider {
         codeboltStartup: config.timeouts?.codeboltStartup ?? 120_000,
         wsConnection: config.timeouts?.wsConnection ?? 30_000,
         cleanup: config.timeouts?.cleanup ?? 15_000,
+        uploadRequest: config.timeouts?.uploadRequest ?? 120_000,
+        agentStart: config.timeouts?.agentStart ?? 120_000,
       },
     };
 
@@ -294,13 +302,18 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (runtimeConfig?.autoStopInterval !== undefined) {
       this.providerConfig.autoStopInterval = runtimeConfig.autoStopInterval;
     }
+    const uploadRequestTimeout = runtimeConfig?.timeouts?.uploadRequest ?? (initVars as any).timeouts?.uploadRequest;
+    if (uploadRequestTimeout !== undefined) {
+      this.providerConfig.timeouts!.uploadRequest = uploadRequestTimeout;
+    }
     this.logger.log('Using E2B sandbox template:', this.providerConfig.sandboxTemplate);
     const rmrSourceType = this.getRequestedRmrSourceType(initVars as any);
 
     // Custom startup order: sandbox first, then CodeBolt, then transport.
     this.resetState();
     this.state.environmentName = initVars.environmentName;
-    (this.state as any).environmentId = initVars.environmentName;
+    (this.state as any).environmentId = (initVars as any).environmentId || initVars.environmentName;
+    this.state.providerId = (initVars as any).providerId || 'e2b-remote-provider';
 
     await this.resolveProjectContext(initVars);
     this.state.workspacePath = await this.resolveWorkspacePath(initVars);
@@ -324,12 +337,14 @@ export class E2bRemoteProviderService extends BaseProvider {
     const narrativeBundlePath = (initVars as any).narrativeBundlePath as string | undefined;
     this.logger.log(`Pre-narrative WS state: wsConnection=${!!this.agentServer.wsConnection}, readyState=${this.agentServer.wsConnection?.readyState ?? 'N/A'}, isConnected=${this.agentServer.isConnected}`);
     if (narrativeBundlePath && this.sandbox) {
+      let narrativeStage = 'upload';
       try {
         this.logger.log(`Uploading narrative bundle from local path: ${narrativeBundlePath} to sandbox /tmp/narrative-unified.tar.gz`);
         const remoteBundle = await this.uploadFileToSandbox(
           narrativeBundlePath,
           '/tmp/narrative-unified.tar.gz',
         );
+        narrativeStage = 'import';
         this.logger.log('Sending narrative.importUnifiedBundle via plugin bridge:', remoteBundle);
         const importResp = await this.sendNarrativeRequest('narrative.importUnifiedBundle', {
           bundlePath: remoteBundle,
@@ -362,8 +377,8 @@ export class E2bRemoteProviderService extends BaseProvider {
 
         await this.sandbox.commands.run(`rm -f ${remoteBundle}`);
       } catch (err: any) {
-        this.logger.error('Narrative bundle import failed:', err?.message ?? err);
-        throw new Error(`Narrative bundle import failed in sandbox: ${err?.message ?? err}`);
+        this.logger.error(`Narrative bundle ${narrativeStage} failed:`, err?.message ?? err);
+        throw new Error(`Narrative bundle ${narrativeStage} failed in sandbox: ${err?.message ?? err}`);
       }
     } else {
       this.logger.log(
@@ -376,7 +391,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     const startResult = {
       success: true,
       environmentName: initVars.environmentName,
-      environmentId: initVars.environmentName,
+      environmentId: (initVars as any).environmentId || initVars.environmentName,
       runtimeId: this.sandboxId || initVars.environmentName,
       cloudRuntimeId: this.sandboxId || initVars.environmentName,
       runtimeType: 'e2b',
@@ -384,10 +399,10 @@ export class E2bRemoteProviderService extends BaseProvider {
       parentRuntimeId: (initVars as any).parentRuntimeId,
       parentEnvironmentId: (initVars as any).parentEnvironmentId,
       agentServerUrl: this.agentServer.serverUrl,
-      workspacePath: this.state.workspacePath!,
+      workspacePath: this.sandboxWorkspacePath,
       transport: this.config.transport,
-      resolvedPath: this.state.workspacePath!,
-      environmentPath: this.state.workspacePath!,
+      resolvedPath: this.sandboxWorkspacePath,
+      environmentPath: this.sandboxWorkspacePath,
       requestedPath: (initVars as any).requestedPath,
       pathSource: (initVars as any).requestedPath || (initVars as any).resolvedPath ? 'user_override' : 'provider_proposed',
       syncMode: (initVars as any).syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
@@ -430,30 +445,21 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onProviderAgentStart(agentMessage: AgentStartMessage): Promise<void> {
-    this.logger.log('Agent start requested, forwarding to sandbox CodeBolt server', JSON.stringify(agentMessage));
-    try {
-      await this.ensureAgentServer();
-
-      if (!this.agentServer.isConnected && this.state.environmentName) {
-        this.logger.log('Gateway not connected, attempting to reconnect transport...');
-        await this.ensureTransportConnection({
-          environmentName: this.state.environmentName,
-          projectPath: this.state.projectPath ?? undefined,
-        } as any);
-      }
-
-      // Send user message to sandbox CodeBolt server via the direct gateway WS.
-      if (this.agentServer.wsConnection && this.agentServer.isConnected) {
-        const ws = this.agentServer.wsConnection;
-        const userMessage = (agentMessage as any).userMessage || agentMessage;
-        ws.send(JSON.stringify(userMessage));
-        this.logger.log('Agent start message sent to CodeBolt gateway as messageResponse');
-      } else {
-        throw new Error('CodeBolt gateway WS not connected. Cannot start agent.');
-      }
-    } catch (error) {
-      throw error;
+    await this.ensureAgentServer();
+    if (!this.agentServer.isConnected && this.state.environmentName) {
+      await this.ensureTransportConnection(this.lastInitVars || {
+        environmentName: this.state.environmentName,
+        projectPath: this.baseProjectPath || undefined,
+      } as any);
     }
+    const socket = this.agentServer.wsConnection;
+    if (!socket || socket.readyState !== WebSocket.OPEN || !this.agentServer.isConnected) {
+      throw new Error('CodeBolt gateway WS not connected. Cannot start agent.');
+    }
+    const message = prepareSandboxChatMessage(agentMessage as any, this.sandboxWorkspacePath);
+    this.logger.log('Requesting sandbox agent startup via createAndStartThread, threadId:', message.params.threadId || 'new');
+    const result = await requestSandboxAgentStart(socket, message, this.providerConfig.timeouts?.agentStart);
+    this.logger.log('Sandbox agent startup confirmed, threadId:', result.threadId);
   }
 
   async onRawMessage(message: any): Promise<void> {
@@ -669,18 +675,20 @@ export class E2bRemoteProviderService extends BaseProvider {
     });
   }
 
-  /**
-   * Upload a local file into the sandbox at a known path. Mirrors the existing
-   * archive-upload pattern (base64 round-trip for transport safety).
-   * Returns the decoded path inside the sandbox.
-   */
+  /** Upload archives in bounded binary chunks without base64 expansion. */
   private async uploadFileToSandbox(localPath: string, remoteBase: string): Promise<string> {
     if (!this.sandbox) throw new Error('No sandbox available');
-    const buf = await fs.readFile(localPath);
-    const remoteB64 = `${remoteBase}.b64`;
-    await this.sandbox.files.write(remoteB64, buf.toString('base64'));
-    await this.sandbox.commands.run(`base64 -d ${remoteB64} > ${remoteBase} && rm -f ${remoteB64}`);
-    return remoteBase;
+    const remotePath = await uploadFileToSandbox(this.sandbox, localPath, remoteBase, {
+      requestTimeoutMs: this.providerConfig.timeouts?.uploadRequest,
+      onProgress: (uploaded, total) => {
+        const percent = total ? Math.floor(uploaded * 100 / total) : 100;
+        this.logger.log(
+          `Upload ${path.basename(localPath)}: ${(uploaded / 1048576).toFixed(1)}/${(total / 1048576).toFixed(1)} MiB (${percent}%)`,
+        );
+      },
+    });
+    this.logger.log('File upload verified:', remotePath);
+    return remotePath;
   }
 
   /**
@@ -1544,7 +1552,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       for (const fileName of configFiles) {
         try {
           const content = await fs.readFile(path.join(codeboltDir, fileName), 'utf-8');
-          await this.sandbox.files.write(`${sandboxCodeboltDir}/${fileName}`, content);
+          await this.sandbox.files.write(`${sandboxCodeboltDir}/${fileName}`, rebaseSandboxSettings(content, this.baseProjectPath, this.sandboxWorkspacePath));
           this.logger.log(`Uploaded .codebolt/${fileName} to sandbox`);
         } catch {
           // File doesn't exist locally — skip
@@ -1557,7 +1565,7 @@ export class E2bRemoteProviderService extends BaseProvider {
       try {
         const settingsContent = await fs.readFile(globalSettingsPath, 'utf-8');
         await this.sandbox.commands.run('mkdir -p /home/user/.codebolt');
-        await this.sandbox.files.write('/home/user/.codebolt/settings.json', settingsContent);
+        await this.sandbox.files.write('/home/user/.codebolt/settings.json', rebaseSandboxSettings(settingsContent, this.baseProjectPath, this.sandboxWorkspacePath));
         this.logger.log('Uploaded global settings.json to sandbox');
       } catch {
         this.logger.log('No global settings.json found at:', globalSettingsPath);
@@ -1622,6 +1630,7 @@ export class E2bRemoteProviderService extends BaseProvider {
     }
 
     const port = this.providerConfig.pluginPort!;
+    this.agentServer.serverUrl = `wss://${this.sandbox.getHost(port)}`;
 
     // Check if the CodeBolt gateway port is already running (TCP port check).
     try {

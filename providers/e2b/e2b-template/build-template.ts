@@ -9,7 +9,7 @@
  * 2.35 after the ubuntu-22.04 build fix is still fine here) / historically
  * was linked against newer glibc; trixie is a safe modern base.
  *
- * Bump CLI_VERSION here and in E2bRemoteProviderService.ts together when you
+ * Bump CLI_VERSION here when you
  * want the sandbox to use a new published cli.
  *
  * Usage:
@@ -21,7 +21,7 @@ import { config } from 'dotenv';
 
 config();
 
-const CLI_VERSION = '1.12.81';
+const CLI_VERSION = '1.12.91';
 const BUILD_MEMORY_MB = Number(process.env.E2B_TEMPLATE_BUILD_MEMORY_MB || 4096);
 
 async function main() {
@@ -30,7 +30,7 @@ async function main() {
   const template = new TemplateBase()
     .fromImage('node:22-trixie')
     .aptInstall(['curl', 'git', 'unzip', 'jq'])
-    .runCmd(`npm install -g codebolt@${CLI_VERSION}`, { user: 'root' });
+    .runCmd(`ONNXRUNTIME_NODE_INSTALL=skip npm install -g codebolt@${CLI_VERSION}`, { user: 'root' });
 
   const buildInfo = await Template.build(template, 'codebolt-remote-execution', {
     cpuCount: 2,
