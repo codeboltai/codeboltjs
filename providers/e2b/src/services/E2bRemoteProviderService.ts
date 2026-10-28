@@ -491,12 +491,10 @@ export class E2bRemoteProviderService extends BaseProvider {
       return;
     }
 
-    // Drop narrative.* messages coming from the local host. Narrative work is
-    // owned by the remote codebolt application; the local host is not a
-    // participant in this protocol, so any narrative.* message here is either
-    // a spurious echo or a loopback from its own handler.
-    if (typeof message?.type === 'string' && message.type.startsWith('narrative.')) {
-      this.logger.log(`Dropping local narrative message: ${message.type}`);
+    // Narrative and async tasks belong to the sandbox. The host must not
+    // dispatch their responses or send resulting errors back into the sandbox.
+    if (typeof message?.type === 'string' && (message.type.startsWith('narrative.') || message.type.startsWith('asyncTask.'))) {
+      this.logger.log(`Dropping local sandbox-owned API message: ${message.type}`);
       return;
     }
 
@@ -710,6 +708,12 @@ export class E2bRemoteProviderService extends BaseProvider {
    * Handle messages from the sandbox CodeBolt direct execution gateway.
    */
   private handlePluginMessage(message: any): void {
+    // Approval acknowledgements belong to the host's pending approval request.
+    // Other backend responses remain private to the sandbox.
+    if (message?.type === 'providerApprovalReplyResponse') {
+      super.handleTransportMessage(message);
+      return;
+    }
     if (message?.type === 'providerAppFsResponse' && message?.requestId) {
       const pending = this.pendingProviderAppFsRequests.get(message.requestId);
       if (pending) {
@@ -748,6 +752,13 @@ export class E2bRemoteProviderService extends BaseProvider {
       return;
     }
 
+    // Startup and file-operation waiters consume their responses directly on
+    // the socket. Backend responses are not UI events: forwarding them makes
+    // the host dispatch response types as requests and echo errors back here.
+    if (typeof message?.type === 'string' && (message.type.endsWith('Response') || message.type === 'externalError')) {
+      return;
+    }
+
     switch (message.type) {
       // Accept both the legacy executionRequest envelope and the server-direct
       // executionGateway.request envelope from /direct-execution-gateway.
@@ -773,6 +784,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         const result = message.result || message.originalMessage;
         if (result) {
           const unwrapped = { ...result, type: result.type || message.originalType };
+          if (typeof unwrapped.type === 'string' && (unwrapped.type.endsWith('Response') || unwrapped.type === 'externalError')) break;
           this.logger.log(`Forwarding ${message.type} to local:`, unwrapped.type);
           super.handleTransportMessage(this.enrichForwardedRuntimeTreeMessage(unwrapped as any) as any);
         } else {

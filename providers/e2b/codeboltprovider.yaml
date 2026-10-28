@@ -9,7 +9,7 @@ author: ravi
 config:
   pluginPort: 3100
   e2bApiKey: ""
-  sandboxTemplate: "f530qwh8abyhz6skzhnz"
+  sandboxTemplate: "k4u1tkiz5x2hpj0x4l1x"
   autoStopInterval: 0
 capabilities:
   screenAccess:

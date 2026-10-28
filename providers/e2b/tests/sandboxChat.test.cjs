@@ -132,6 +132,42 @@ test('forwards gateway chat responses back to the host without another transport
   assert.equal(service.forwarded[0].message.content, 'Hello');
 });
 
+test('keeps backend API responses out of the host request dispatcher', () => {
+  const { service } = fixture();
+  for (const type of ['asyncTask.listResponse', 'asyncTask.errorResponse', 'getProjectPathResponse', 'startThreadResponse', 'externalError']) {
+    service.handlePluginMessage({ type, requestId: 'sandbox-request' });
+    service.handlePluginMessage({ type: 'executionGateway.notification', originalType: 'asyncTask.list', result: { type, requestId: 'sandbox-request' } });
+  }
+  assert.equal(service.forwarded.length, 0);
+  service.handlePluginMessage({ type: 'executionGateway.notification', result: { type: 'message', threadId: 'host-thread', content: 'Hello' } });
+  assert.equal(service.forwarded[0].content, 'Hello');
+});
+
+test('returns sandbox approval acknowledgements to the requesting host', () => {
+  const { service } = fixture();
+  const response = { type: 'providerApprovalReplyResponse', requestId: 'approval-request', success: true };
+  service.handlePluginMessage(response);
+  assert.deepEqual(service.forwarded, [response]);
+});
+
+test('forwards approval replies over the existing sandbox socket without starting another agent', async () => {
+  const { service, socket } = fixture();
+  service.matchPendingExecutionRequest = () => null;
+  // BaseProvider normally forwards raw messages through this socket.
+  const base = Object.getPrototypeOf(Object.getPrototypeOf(service));
+  base.onRawMessage = async function (message) { this.agentServer.wsConnection.send(JSON.stringify(message)); };
+  const request = { type: 'providerApprovalReply', requestId: 'approval-request', rememberForThread: true,
+    reply: { type: 'confirmationResponse', messageId: 'original-message', threadId: 'host-thread' } };
+  await service.onRawMessage(request);
+  assert.deepEqual(socket.sent, [request]);
+});
+
+test('drops async-task echoes from the host before they can loop back to the sandbox', async () => {
+  const { service, socket } = fixture();
+  for (const type of ['asyncTask.listResponse', 'asyncTask.errorResponse']) await service.onRawMessage({ type });
+  assert.equal(socket.sent.length, 0);
+});
+
 test('reconnects the generic gateway before forwarding the next turn', async () => {
   const { service, socket } = fixture();
   service.state.environmentName = 'env';

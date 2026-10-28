@@ -4,7 +4,7 @@ import { E2bRemoteProviderService } from "./services/E2bRemoteProviderService";
 const providerService = new E2bRemoteProviderService({
   pluginPort: parseInt(process.env.REMOTE_EXECUTION_PORT || '', 10) || undefined,
   codeboltStartCommand: process.env.CODEBOLT_START_CMD || undefined,
-  sandboxTemplate: process.env.E2B_SANDBOX_TEMPLATE || 'f530qwh8abyhz6skzhnz',
+  sandboxTemplate: process.env.E2B_SANDBOX_TEMPLATE || 'k4u1tkiz5x2hpj0x4l1x',
 });
 const handlers = providerService.getEventHandlers();
 
