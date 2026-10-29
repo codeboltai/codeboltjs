@@ -427,7 +427,7 @@ test('uses the configured CodeBolt desktop template for screen access and preser
     const rootDir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'codebolt-desktop-template-'));
     const desktopCalls = [], headlessCalls = [];
     let streamStarted = false;
-    const sandbox = { sandboxId: 'new-sandbox', commands: { run: async () => ({stdout:''}) }, stream: {start:async()=>{streamStarted=true;}} };
+    const sandbox = { sandboxId: 'new-sandbox', commands: { run: async () => ({stdout:''}) }, stream: {start:async()=>{streamStarted=true;},getUrl:()=> 'https://desktop.example.test/vnc.html'} };
     const {service} = fixture({ sandboxTemplate:'headless-custom', desktopSandboxTemplate:'desktop-custom' }, {
       desktop: {create:async (...args)=>{desktopCalls.push(args);return sandbox;}},
       headless: {create:async (...args)=>{headlessCalls.push(args);return sandbox;}},
@@ -458,4 +458,29 @@ test('rejects an empty desktop template instead of creating an unprepared deskto
     await assert.rejects(service.setupEnvironment({environmentName:'test'}),/desktopSandboxTemplate/);
     assert.equal(created,false);
   } finally {fs.rmSync(rootDir,{recursive:true,force:true});}
+});
+
+
+test('reuses a running desktop stream and explicitly enables user input on every session', async () => {
+  const {service}=fixture();let starts=0;
+  service.screenAccessEnabled=true;
+  service.sandbox={stream:{start:async()=>{starts++;throw new Error('Stream is already running');},getUrl:()=> 'https://desktop.example.test/vnc.html?view_only=true'}};
+  const results=await Promise.all([service.onProviderScreenSession(),service.onProviderScreenSession()]);
+  assert.equal(starts,1);
+  for(const result of results){const url=new URL(result.url);assert.equal(url.searchParams.get('view_only'),'false');assert.equal(url.searchParams.get('autoconnect'),'true');assert.equal(url.searchParams.get('resize'),'scale');}
+  await service.onProviderScreenSession();assert.equal(starts,2);
+});
+
+test('attaches to an existing stream when a reconnected SDK has no cached viewer URL', async () => {
+  const {service}=fixture();service.screenAccessEnabled=true;
+  service.sandbox={getHost:port=>`${port}-sandbox.example.test`,stream:{start:async()=>{throw new Error('Stream is already running');},getUrl:()=>{throw new Error('Server is not running');}}};
+  const result=await service.onProviderScreenSession();
+  assert.equal(new URL(result.url).host,'6080-sandbox.example.test');
+  assert.equal(new URL(result.url).searchParams.get('view_only'),'false');
+});
+
+test('does not hide genuine desktop stream startup failures', async () => {
+  const {service}=fixture();service.screenAccessEnabled=true;
+  service.sandbox={stream:{start:async()=>{throw new Error('noVNC startup failed');},getUrl:()=> 'https://desktop.example.test'}};
+  await assert.rejects(service.onProviderScreenSession(),/noVNC startup failed/);
 });

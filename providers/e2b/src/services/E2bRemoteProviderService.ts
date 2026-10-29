@@ -69,6 +69,7 @@ export class E2bRemoteProviderService extends BaseProvider {
   private sandboxWorkspacePath: string = '/home/user';
   private setupInProgress = false;
   private screenAccessEnabled = false;
+  private desktopStreamStartup: Promise<string> | undefined;
   private bootstrapResult: Record<string, unknown> | undefined;
   private backgroundCommand: any = null;
   private pendingNarrativeRequests: Map<string, {
@@ -1510,8 +1511,8 @@ export class E2bRemoteProviderService extends BaseProvider {
 
     if (this.screenAccessEnabled) {
       if (!this.sandbox?.stream?.start) throw new Error('The selected E2B sandbox does not support desktop streaming');
-      await this.sandbox.stream.start();
-      this.logger.log('Started E2B desktop stream');
+      await this.ensureDesktopStream();
+      this.logger.log('E2B desktop stream is ready');
     }
 
     const bootstrap = (initVars as Record<string, unknown>).bootstrap as GitRevisionBootstrap | undefined;
@@ -1632,12 +1633,45 @@ export class E2bRemoteProviderService extends BaseProvider {
     };
   }
 
-  async onProviderScreenSession(): Promise<ProviderScreenSession> {
+  private async ensureDesktopStream(): Promise<string> {
     if (!this.screenAccessEnabled || !this.sandbox?.stream) throw new Error('E2B interactive screen is not enabled');
-    await this.sandbox.stream.start();
-    const url = String(this.sandbox.stream.getUrl() || '');
-    if (!url) throw new Error('E2B did not return a desktop stream URL');
-    return { url, transport: 'vnc' };
+    if (this.desktopStreamStartup) return this.desktopStreamStartup;
+    const sandbox = this.sandbox;
+    const operation = (async () => {
+      let alreadyRunning = false;
+      try {
+        await sandbox.stream.start({ port: 6080 });
+      } catch (error) {
+        if ((error instanceof Error ? error.message : String(error)) !== 'Stream is already running') throw error;
+        alreadyRunning = true;
+      }
+      let url: string;
+      try {
+        url = String(sandbox.stream.getUrl({ autoConnect: true, viewOnly: false, resize: 'scale' }) || '');
+      } catch (error) {
+        // A newly attached Desktop SDK has no cached URL for the existing
+        // noVNC process. Reuse that process at the port we configure above.
+        if (!alreadyRunning || !(error instanceof Error) || error.message !== 'Server is not running') throw error;
+        url = `https://${sandbox.getHost(6080)}/vnc.html`;
+      }
+      if (!url) throw new Error('E2B did not return a desktop stream URL');
+      const viewer = new URL(url);
+      viewer.searchParams.set('autoconnect', 'true');
+      // Be explicit: noVNC can remember a previous read-only setting.
+      viewer.searchParams.set('view_only', 'false');
+      viewer.searchParams.set('resize', 'scale');
+      return viewer.toString();
+    })();
+    this.desktopStreamStartup = operation;
+    try {
+      return await operation;
+    } finally {
+      if (this.desktopStreamStartup === operation) this.desktopStreamStartup = undefined;
+    }
+  }
+
+  async onProviderScreenSession(): Promise<ProviderScreenSession> {
+    return { url: await this.ensureDesktopStream(), transport: 'vnc' };
   }
 
   /**
