@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { randomUUID } from 'crypto';
 import type { ProviderInitVars, AgentStartMessage, RawMessageForAgent } from '@codebolt/types/provider';
 import {
   BaseProvider,
@@ -49,6 +50,8 @@ interface E2bProviderConfig {
     cleanup?: number;
     /** Per-chunk binary upload request deadline in milliseconds. */
     uploadRequest?: number;
+    /** Initial response and idle deadline for streamed review downloads. */
+    downloadRequest?: number;
     /** Deadline for a thread-start response or legacy dispatch acknowledgement. */
     agentStart?: number;
   };
@@ -109,6 +112,7 @@ export class E2bRemoteProviderService extends BaseProvider {
         wsConnection: config.timeouts?.wsConnection ?? 30_000,
         cleanup: config.timeouts?.cleanup ?? 15_000,
         uploadRequest: config.timeouts?.uploadRequest ?? 120_000,
+        downloadRequest: config.timeouts?.downloadRequest ?? 120_000,
         agentStart: config.timeouts?.agentStart ?? 120_000,
       },
     };
@@ -144,19 +148,12 @@ export class E2bRemoteProviderService extends BaseProvider {
       .slice(0, 55) || 'codebolt-project';
   }
 
-  private getRequestedRmrSourceType(request: Record<string, any>): 'git' | 'workspace_sync' {
-    return request.syncMode === 'workspace_sync' || request.rmrSourceType === 'workspace_sync'
-      ? 'workspace_sync'
-      : 'git';
-  }
-
-  private getRmrPolicy(request: Record<string, any>): Record<string, any> {
-    const defaultSourceType = this.getRequestedRmrSourceType(request);
+  private getRmrPolicy(): Record<string, any> {
     return {
-      defaultSourceType,
-      sourceTypes: ['git', 'workspace_sync'],
-      createsExternalPullRequest: defaultSourceType === 'git',
-      externalProviders: ['github'],
+      defaultSourceType: 'workspace_sync',
+      sourceTypes: ['workspace_sync'],
+      createsExternalPullRequest: false,
+      externalProviders: [],
     };
   }
 
@@ -217,7 +214,6 @@ export class E2bRemoteProviderService extends BaseProvider {
   getProspectivePath(request: Record<string, any>): Record<string, any> {
     const requestedPath = String(request.environmentPath || request.requestedPath || request.resolvedPath || request.path || '').trim();
     const resolvedPath = requestedPath || `/home/user/${this.getProjectNameFromRequest(request)}`;
-    const rmrSourceType = this.getRequestedRmrSourceType(request);
     return {
       path: resolvedPath,
       projectPath: resolvedPath,
@@ -227,19 +223,18 @@ export class E2bRemoteProviderService extends BaseProvider {
       pathSource: requestedPath ? 'user_override' : 'provider_proposed',
       source: requestedPath ? 'user_override' : 'provider_proposed',
       syncMode: request.syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
-      mergeStrategy: request.syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
+      mergeStrategy: 'workspace_sync',
       parentPath: request.parentProjectPath || request.projectPath || this.baseProjectPath || undefined,
       parentProjectPath: request.parentProjectPath || request.projectPath || this.baseProjectPath || undefined,
       editable: true,
       syncPolicy: this.getSyncPolicy(),
       defaultSyncMode: 'git',
       supportedSyncModes: ['git', 'workspace_sync'],
-      supportedMergeStrategies: ['git', 'workspace_sync'],
-      supportedRmrSourceTypes: ['git', 'workspace_sync'],
-      defaultRmrSourceType: rmrSourceType,
-      rmrSourceType,
-      gitTransport: rmrSourceType === 'git' ? 'github_pr' : undefined,
-      rmrPolicy: this.getRmrPolicy(request),
+      supportedMergeStrategies: ['workspace_sync'],
+      supportedRmrSourceTypes: ['workspace_sync'],
+      defaultRmrSourceType: 'workspace_sync',
+      rmrSourceType: 'workspace_sync',
+      rmrPolicy: this.getRmrPolicy(),
     };
   }
 
@@ -313,8 +308,9 @@ export class E2bRemoteProviderService extends BaseProvider {
     if (uploadRequestTimeout !== undefined) {
       this.providerConfig.timeouts!.uploadRequest = uploadRequestTimeout;
     }
+    const downloadRequestTimeout = runtimeConfig?.timeouts?.downloadRequest ?? (initVars as any).timeouts?.downloadRequest;
+    if (downloadRequestTimeout !== undefined) this.providerConfig.timeouts!.downloadRequest = downloadRequestTimeout;
     this.logger.log('Using E2B sandbox template:', this.screenAccessEnabled ? this.providerConfig.desktopSandboxTemplate : this.providerConfig.sandboxTemplate);
-    const rmrSourceType = this.getRequestedRmrSourceType(initVars as any);
 
     // Custom startup order: sandbox first, then CodeBolt, then transport.
     this.resetState();
@@ -413,20 +409,18 @@ export class E2bRemoteProviderService extends BaseProvider {
       requestedPath: (initVars as any).requestedPath,
       pathSource: (initVars as any).requestedPath || (initVars as any).resolvedPath ? 'user_override' : 'provider_proposed',
       syncMode: (initVars as any).syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
-      mergeStrategy: (initVars as any).syncMode === 'workspace_sync' ? 'workspace_sync' : 'git',
+      mergeStrategy: 'workspace_sync',
       parentPath: this.baseProjectPath || undefined,
       syncPolicy: this.getSyncPolicy(),
       defaultSyncMode: 'git',
       supportedSyncModes: ['git', 'workspace_sync'],
-      supportedMergeStrategies: ['git', 'workspace_sync'],
-      supportedRmrSourceTypes: ['git', 'workspace_sync'],
-      defaultRmrSourceType: rmrSourceType,
-      rmrSourceType,
-      gitTransport: rmrSourceType === 'git' ? 'github_pr' : undefined,
+      supportedMergeStrategies: ['workspace_sync'],
+      supportedRmrSourceTypes: ['workspace_sync'],
+      defaultRmrSourceType: 'workspace_sync',
+      rmrSourceType: 'workspace_sync',
       gitBaseRef: (initVars as any).gitBaseRef || (initVars as any).gitBranch,
       gitHeadRef: (initVars as any).gitHeadRef,
-      gitProvider: rmrSourceType === 'git' ? 'github' : undefined,
-      rmrPolicy: this.getRmrPolicy(initVars as any),
+      rmrPolicy: this.getRmrPolicy(),
       screenAccess: {
         enabled: this.screenAccessEnabled,
         state: this.screenAccessEnabled ? 'ready' : 'disabled',
@@ -470,28 +464,12 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   async onRawMessage(message: any): Promise<void> {
+    // Dedicated SDK listeners own these requests. Forwarding them through
+    // the raw hook would send startup or review requests a second time.
+    if (message?.type === 'providerSendPR' || message?.type === 'providerAgentStart') return;
     if (!this.agentServer.isConnected || !this.agentServer.wsConnection) {
       // Queue via base class
       await super.onRawMessage(message);
-      return;
-    }
-    if (message?.type === 'providerSendPR') {
-      this.logger.log('Handling providerSendPR locally');
-      try {
-        const result = await this.onSendPR();
-        this.handleTransportMessage({
-          type: 'remoteProviderEvent',
-          action: 'providerSendPRResponse',
-          message: result,
-        } as any);
-      } catch (error: any) {
-        this.logger.error('Error handling sendPR:', error);
-        this.handleTransportMessage({
-          type: 'remoteProviderEvent',
-          action: 'providerSendPRResponse',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        } as any);
-      }
       return;
     }
     if (message?.type === 'providerHeartbeatResponse' || message?.type === 'providerHeartbeatAck') {
@@ -696,19 +674,40 @@ export class E2bRemoteProviderService extends BaseProvider {
     return remotePath;
   }
 
-  /**
-   * Read a file from the sandbox to a local path.
-   * sandbox.files.read returns a string; for binary content the caller must
-   * ensure the sandbox has produced something base64-safe, or read as bytes.
-   * Here we ask the sandbox to base64-encode the file first, then decode locally.
-   */
+  /** Stream review bundles without a remote base64 copy or whole-file download. */
   private async downloadFileFromSandbox(remotePath: string, localPath: string): Promise<void> {
     if (!this.sandbox) throw new Error('No sandbox available');
-    const remoteB64 = `${remotePath}.b64`;
-    await this.sandbox.commands.run(`base64 ${remotePath} > ${remoteB64}`);
-    const b64 = await this.sandbox.files.read(remoteB64);
-    await this.sandbox.commands.run(`rm -f ${remoteB64}`);
-    await fs.writeFile(localPath, Buffer.from(b64, 'base64'));
+    const requestTimeoutMs = this.providerConfig.timeouts?.downloadRequest ?? 120_000;
+    const commandOptions = { timeoutMs: requestTimeoutMs, requestTimeoutMs };
+    const sizeResult = await this.sandbox.commands.run(`wc -c < ${this.shellQuote(remotePath)}`, commandOptions);
+    const expectedSize = String(sizeResult.stdout || '').trim();
+    if (!/^\d+$/.test(expectedSize)) throw new Error('Could not determine remote review bundle size');
+    const partial = `${localPath}.${randomUUID()}.part`;
+    const file = await fs.open(partial, 'wx');
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let downloaded = 0;
+    try {
+      const stream = await this.sandbox.files.read(remotePath, {
+        format: 'stream', requestTimeoutMs, streamIdleTimeoutMs: requestTimeoutMs,
+      });
+      reader = stream.getReader();
+      while (true) {
+        const chunk = await reader!.read();
+        if (chunk.done) break;
+        await file.writeFile(chunk.value);
+        downloaded += chunk.value.byteLength;
+      }
+      if (downloaded !== Number(expectedSize)) {
+        throw new Error(`Review bundle download size mismatch: expected ${expectedSize}, received ${downloaded}`);
+      }
+      await file.close();
+      await fs.rename(partial, localPath);
+    } finally {
+      try { await reader?.cancel(); } catch { /* Preserve the transfer error. */ }
+      reader?.releaseLock();
+      await file.close();
+      await fs.rm(partial, { force: true });
+    }
   }
 
   /**
@@ -1033,11 +1032,8 @@ export class E2bRemoteProviderService extends BaseProvider {
   }
 
   private async doSendPR(): Promise<any> {
-    const rmrSourceType = this.getRequestedRmrSourceType((this.lastInitVars as any) || {});
-    if (rmrSourceType === 'git') {
-      return this.doSendGitHubPR();
-    }
-
+    // Initial Git cloning and review export are independent. Reviews always
+    // carry the current workspace and narrative back to the parent server.
     this.logger.log('onSendPR — requesting unified narrative bundle from in-sandbox codebolt');
 
     if (!this.sandbox) {
@@ -1052,352 +1048,56 @@ export class E2bRemoteProviderService extends BaseProvider {
       workspace: this.sandboxWorkspacePath,
       description: 'pre-export snapshot of current workspace',
     });
-    const snapshotIdToExport = snap?.snapshot_id
-      ?? (this.lastInitVars as any)?.snapshotId;
+    const snapshotIdToExport = snap?.snapshot_id ?? snap?.snapshotId;
     if (!snapshotIdToExport) {
-      throw new Error('No snapshotId available to export narrative bundle');
+      throw new Error('Fresh workspace snapshot did not return a snapshot ID; refusing to export the startup snapshot');
     }
-
+    const baseSnapshotId = (this.lastInitVars as any)?.snapshotId;
     const ack = await this.sendNarrativeRequest('narrative.exportUnifiedBundle', {
       snapshotId: snapshotIdToExport,
+      baseSnapshotId,
       environmentId: this.state.environmentName,
       workspace: this.sandboxWorkspacePath,
       incremental: false,
     });
-
+    if (ack?.snapshotId && ack.snapshotId !== snapshotIdToExport) {
+      throw new Error('Exported review bundle does not match the fresh workspace snapshot');
+    }
     const remoteBundlePath = ack?.bundlePath;
     if (!remoteBundlePath) {
       throw new Error('codebolt did not return a bundlePath in narrative.exportUnifiedBundleResponse');
     }
-
-    // Download the bundle to a local temp file
-    const localTmp = path.join(
-      process.env.TMPDIR || '/tmp',
-      `e2b-narrative-${Date.now()}.tar.gz`,
-    );
-    await this.downloadFileFromSandbox(remoteBundlePath, localTmp);
-
-    // Cleanup remote
+    const localTmp = path.join(process.env.TMPDIR || '/tmp', `e2b-narrative-${randomUUID()}.tar.gz`);
     try {
-      await this.sandbox.commands.run(`rm -f ${remoteBundlePath}`);
-    } catch { /* ignore */ }
-
-    // Read back as base64 for transport to parent (preserves existing wire shape)
-    const bundleBuffer = await fs.readFile(localTmp);
-    const bundleData = bundleBuffer.toString('base64');
-
-    this.logger.log(
-      `Narrative bundle exported from sandbox: snapshotId=${ack.snapshotId} bytes=${bundleBuffer.length}`,
-    );
-
-    return {
-      sourceType: 'workspace_sync',
-      rmrSourceType: 'workspace_sync',
-      bundleData,
-      bundlePath: localTmp,
-      snapshot: { snapshot_id: ack.snapshotId },
-      snapshotId: ack.snapshotId,
-      baseSnapshotId: ack.baseSnapshotId,
-      narrativeSummary: ack.narrativeSummary,
-      mergeConfig: {
-        strategy: 'workspace_sync',
+      await this.downloadFileFromSandbox(remoteBundlePath, localTmp);
+      // The parent imports these bytes before allowing the sandbox to close.
+      const bundleBuffer = await fs.readFile(localTmp);
+      this.logger.log(`Narrative bundle exported from sandbox: snapshotId=${snapshotIdToExport} bytes=${bundleBuffer.length}`);
+      const workspaceSync = {
+        environmentId: this.state.environmentName,
+        snapshotId: snapshotIdToExport,
+        baseSnapshotId: baseSnapshotId ?? ack.baseSnapshotId,
+      };
+      return {
         sourceType: 'workspace_sync',
-        workspaceSync: {
-          environmentId: this.state.environmentName,
-          snapshotId: ack.snapshotId,
-          baseSnapshotId: ack.baseSnapshotId,
-        },
-        narrativeMerge: {
-          environmentId: this.state.environmentName,
-          snapshotId: ack.snapshotId,
-          baseSnapshotId: ack.baseSnapshotId,
-        },
-      },
-    };
+        rmrSourceType: 'workspace_sync',
+        bundleData: bundleBuffer.toString('base64'),
+        snapshot: { snapshot_id: snapshotIdToExport },
+        snapshotId: snapshotIdToExport,
+        baseSnapshotId: workspaceSync.baseSnapshotId,
+        narrativeSummary: ack.narrativeSummary,
+        narrativeContext: (this.lastInitVars as any)?.narrativeContext,
+        threadId: (this.lastInitVars as any)?.threadId,
+        mergeConfig: { strategy: 'workspace_sync', sourceType: 'workspace_sync', workspaceSync, narrativeMerge: workspaceSync },
+      };
+    } finally {
+      try { await fs.rm(localTmp, { force: true }); } catch { /* Best-effort temporary cleanup. */ }
+      try { await this.sandbox.commands.run(`rm -f -- ${this.shellQuote(remoteBundlePath)}`); } catch { /* Best-effort temporary cleanup. */ }
+    }
   }
 
   private shellQuote(value: string): string {
     return `'${String(value).replace(/'/g, `'\\''`)}'`;
-  }
-
-  private async runSandboxGit(args: string[], allowFailure = false): Promise<{ stdout: string; stderr: string; code: number }> {
-    if (!this.sandbox) throw new Error('No sandbox available');
-    const command = `cd ${this.shellQuote(this.sandboxWorkspacePath)} && git ${args.map((arg) => this.shellQuote(arg)).join(' ')}`;
-    const result = await this.sandbox.commands.run(command);
-    const code = Number(result.exitCode ?? result.code ?? 0);
-    const stdout = String(result.stdout || '');
-    const stderr = String(result.stderr || '');
-    if (code !== 0 && !allowFailure) {
-      throw new Error(`git ${args.join(' ')} failed: ${stderr || stdout || `exit ${code}`}`);
-    }
-    return { stdout, stderr, code };
-  }
-
-  private parseGitHubRemote(remoteUrl: string): { owner: string; repo: string } | null {
-    const trimmed = String(remoteUrl || '').trim();
-    const sshMatch = trimmed.match(/^git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
-    if (sshMatch) return { owner: sshMatch[1], repo: sshMatch[2].replace(/\.git$/i, '') };
-    try {
-      const url = new URL(trimmed);
-      if (url.hostname.toLowerCase() !== 'github.com') return null;
-      const [owner, repo] = url.pathname.replace(/^\/+/, '').replace(/\.git$/i, '').split('/');
-      return owner && repo ? { owner, repo } : null;
-    } catch {
-      return null;
-    }
-  }
-
-  private sanitizeBranchSegment(value: unknown, fallback: string): string {
-    const raw = String(value || fallback).trim() || fallback;
-    return raw
-      .replace(/^refs\/heads\//, '')
-      .replace(/[^a-zA-Z0-9._/-]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 160) || fallback;
-  }
-
-  private getExplicitGitHubToken(): string {
-    const initVars = (this.lastInitVars as any) || {};
-    return String(
-      initVars.githubToken
-      || initVars.github_token
-      || initVars.gitToken
-      || initVars.git_token
-      || '',
-    ).trim();
-  }
-
-  private getGitHubEnvToken(): string {
-    return String(
-      process.env.CODEBOLT_GITHUB_TOKEN
-      || process.env.GITHUB_TOKEN
-      || process.env.GH_TOKEN
-      || '',
-    ).trim();
-  }
-
-  private cloudHttpUrlFromConfig(): string {
-    const initVars = (this.lastInitVars as any) || {};
-    const explicit = String(
-      initVars.wranglerBaseUrl
-      || initVars.cloudflareWorkerUrl
-      || initVars.cloudHttpUrl
-      || process.env.CODEBOLT_CLOUD_HTTP_URL
-      || '',
-    ).trim();
-    if (explicit) return explicit.replace(/\/+$/, '');
-
-    const cloudUrl = String(
-      initVars.cloudUrl
-      || initVars.cloudWsUrl
-      || process.env.CODEBOLT_CLOUD_WS_URL
-      || process.env.CLOUD_WS_URL
-      || '',
-    ).trim();
-    if (!cloudUrl) return '';
-
-    return cloudUrl
-      .replace(/^wss:/i, 'https:')
-      .replace(/^ws:/i, 'http:')
-      .replace(/\/proxy\/.*$/i, '')
-      .replace(/\/+$/, '');
-  }
-
-  private async resolveGitHubTokenForRepo(repo: { owner: string; repo: string }, remoteUrl: string): Promise<string> {
-    const initVars = (this.lastInitVars as any) || {};
-    const explicitToken = this.getExplicitGitHubToken();
-    if (explicitToken) return explicitToken;
-
-    const appToken = String(
-      initVars.cloudAuthToken
-      || initVars.authToken
-      || initVars.appToken
-      || initVars.loginToken
-      || process.env.CODEBOLT_AUTH_TOKEN
-      || process.env.APP_TOKEN
-      || process.env.CODEBOLT_APP_TOKEN
-      || '',
-    ).trim();
-    const wranglerBaseUrl = this.cloudHttpUrlFromConfig();
-
-    if (wranglerBaseUrl && appToken) {
-      try {
-        const workspaceId = initVars.workspaceId || initVars.workspace_id || process.env.CODEBOLT_CLOUD_WORKSPACE_ID;
-        const workspaceType = initVars.workspaceType || initVars.workspace_type || process.env.CODEBOLT_CLOUD_WORKSPACE_TYPE;
-        const payload = await this.githubApi<any>(
-          `/github/app-token/${encodeURIComponent(appToken)}`,
-          '',
-          {
-            absoluteUrl: `${wranglerBaseUrl}/github/app-token/${encodeURIComponent(appToken)}`,
-            method: 'POST',
-            headers: {
-              'x-codebolt-workspace-id': workspaceId,
-              'x-codebolt-workspace-type': workspaceType,
-            },
-            body: JSON.stringify({
-              owner: repo.owner,
-              repo: repo.repo,
-              repositoryUrl: remoteUrl,
-              installationId: initVars.githubInstallationId || initVars.github_installation_id || initVars.installationId,
-              workspaceId,
-              workspaceType,
-            }),
-          },
-        );
-        const token = payload?.data?.token || payload?.token;
-        if (typeof token === 'string' && token.trim()) return token.trim();
-        throw new Error(payload?.error || payload?.message || 'missing token in GitHub App token response');
-      } catch (error: any) {
-        const fallback = this.getGitHubEnvToken();
-        if (fallback) {
-          this.logger.warn('Falling back to explicit GitHub token after GitHub App token resolution failed:', error?.message || error);
-          return fallback;
-        }
-        throw new Error(`Could not get GitHub App installation token from wrangler: ${error?.message || error}`);
-      }
-    }
-
-    const fallback = this.getGitHubEnvToken();
-    if (fallback) return fallback;
-
-    throw new Error('Cannot create upstream GitHub PR without GitHub App token route config (wranglerBaseUrl/cloudUrl + authToken/appToken/loginToken) or githubToken/gitToken/CODEBOLT_GITHUB_TOKEN/GITHUB_TOKEN/GH_TOKEN');
-  }
-
-  private authedGitHubRemote(remoteUrl: string, token: string): string {
-    const repo = this.parseGitHubRemote(remoteUrl);
-    if (!repo) return remoteUrl;
-    return `https://x-access-token:${encodeURIComponent(token)}@github.com/${repo.owner}/${repo.repo}.git`;
-  }
-
-  private async githubApi<T>(pathName: string, token: string, init: any = {}): Promise<T> {
-    const fetchFn = (globalThis as any).fetch;
-    if (typeof fetchFn !== 'function') {
-      throw new Error('GitHub PR creation requires a runtime with global fetch support');
-    }
-    const url = init.absoluteUrl || `https://api.github.com${pathName}`;
-    const { absoluteUrl: _absoluteUrl, ...requestInit } = init;
-    const response = await fetchFn(url, {
-      ...requestInit,
-      headers: {
-        accept: 'application/vnd.github+json',
-        ...(token ? { authorization: `Bearer ${token}` } : {}),
-        ...(init.body ? { 'content-type': 'application/json' } : {}),
-        'x-github-api-version': '2022-11-28',
-        ...(init.headers || {}),
-      },
-    });
-    if (!response.ok) {
-      const text = await response.text().catch(() => '');
-      throw new Error(`GitHub API ${pathName} failed (${response.status}): ${text || response.statusText}`);
-    }
-    return response.json() as Promise<T>;
-  }
-
-  private async doSendGitHubPR(): Promise<any> {
-    this.logger.log('onSendPR — creating upstream GitHub PR from E2B git workspace');
-
-    if (!this.sandbox) {
-      throw new Error('No sandbox available');
-    }
-
-    const initVars = (this.lastInitVars as any) || {};
-    const remoteUrl = String(initVars.gitUrl || (await this.runSandboxGit(['config', '--get', 'remote.origin.url'])).stdout.trim());
-    if (!remoteUrl) throw new Error('Cannot create git RMR without a git remote URL');
-
-    const repo = this.parseGitHubRemote(remoteUrl);
-    if (!repo) throw new Error(`E2B git RMR currently supports GitHub remotes only: ${remoteUrl}`);
-
-    const token = await this.resolveGitHubTokenForRepo(repo, remoteUrl);
-
-    const status = await this.runSandboxGit(['status', '--porcelain']);
-    if (!status.stdout.trim()) {
-      throw new Error('No committable changes detected in E2B sandbox');
-    }
-
-    const currentBranch = (await this.runSandboxGit(['rev-parse', '--abbrev-ref', 'HEAD'], true)).stdout.trim();
-    const baseRef = this.sanitizeBranchSegment(initVars.gitBaseRef || initVars.gitBranch || currentBranch, 'main');
-    const headRef = this.sanitizeBranchSegment(
-      initVars.gitHeadRef,
-      `codebolt/e2b/${this.state.environmentName || this.sandboxId || 'sandbox'}/${Date.now()}`,
-    );
-    const title = String(initVars.prTitle || initVars.title || `CodeBolt E2B changes from ${this.state.environmentName || this.sandboxId || 'sandbox'}`);
-    const description = String(initVars.prDescription || initVars.description || `Created by CodeBolt E2B provider for ${this.state.environmentName || this.sandboxId || 'sandbox'}.`);
-
-    await this.runSandboxGit(['checkout', '-B', headRef]);
-    await this.runSandboxGit(['add', '-A']);
-    const commit = await this.runSandboxGit(['commit', '-m', title], true);
-    if (commit.code !== 0) {
-      const combined = `${commit.stdout}\n${commit.stderr}`.toLowerCase();
-      if (combined.includes('nothing to commit') || combined.includes('no changes added')) {
-        throw new Error('No committable changes detected in E2B sandbox');
-      }
-      throw new Error(`git commit failed: ${commit.stderr || commit.stdout}`);
-    }
-
-    await this.runSandboxGit(['push', this.authedGitHubRemote(remoteUrl, token), `HEAD:refs/heads/${headRef}`]);
-
-    const headSha = (await this.runSandboxGit(['rev-parse', 'HEAD'])).stdout.trim();
-    const changedFilesRaw = (await this.runSandboxGit(['diff', '--name-only', `${baseRef}...HEAD`], true)).stdout
-      || (await this.runSandboxGit(['show', '--name-only', '--format=', 'HEAD'], true)).stdout;
-    const changedFiles = changedFilesRaw
-      .split(/\r?\n/)
-      .map((file) => file.trim())
-      .filter(Boolean);
-
-    const existingPrs = await this.githubApi<any[]>(
-      `/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/pulls?state=open&head=${encodeURIComponent(`${repo.owner}:${headRef}`)}&base=${encodeURIComponent(baseRef)}`,
-      token,
-    );
-    const pr = existingPrs[0] || await this.githubApi<any>(
-      `/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/pulls`,
-      token,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          title,
-          body: [
-            description,
-            '',
-            `Environment: ${this.state.environmentName || 'unknown'}`,
-            `Sandbox: ${this.sandboxId || 'unknown'}`,
-            `Files changed: ${changedFiles.length}`,
-          ].join('\n'),
-          head: headRef,
-          base: baseRef,
-          maintainer_can_modify: true,
-        }),
-      },
-    );
-
-    const diffPatch = (await this.runSandboxGit(['show', '--name-status', '--format=medium', 'HEAD'], true)).stdout || status.stdout;
-
-    return {
-      sourceType: 'git',
-      rmrSourceType: 'git',
-      externalPrUrl: pr.html_url,
-      externalPrNumber: pr.number,
-      gitTransport: 'github_pr',
-      title,
-      description: `${description}\n\nGitHub PR: ${pr.html_url}`,
-      majorFilesChanged: changedFiles,
-      diffPatch,
-      mergeConfig: {
-        strategy: 'git',
-        sourceType: 'git',
-        git: {
-          provider: 'github',
-          transport: 'github_pr',
-          repositoryPath: this.sandboxWorkspacePath,
-          repositoryUrl: `https://github.com/${repo.owner}/${repo.repo}.git`,
-          baseRef,
-          headRef,
-          headSha,
-          externalPrUrl: pr.html_url,
-          externalPrNumber: pr.number,
-          externalProvider: 'github',
-        },
-      },
-    };
   }
 
   // --- BaseProvider abstract method implementations ---

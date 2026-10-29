@@ -1,4 +1,5 @@
 const { test } = require('node:test');
+const os = require('node:os');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -483,4 +484,175 @@ test('does not hide genuine desktop stream startup failures', async () => {
   const {service}=fixture();service.screenAccessEnabled=true;
   service.sandbox={stream:{start:async()=>{throw new Error('noVNC startup failed');},getUrl:()=> 'https://desktop.example.test'}};
   await assert.rejects(service.onProviderScreenSession(),/noVNC startup failed/);
+});
+
+test('SDK owns the only PR response even when the raw hook receives the same request', async () => {
+  const { service } = fixture();
+  let calls = 0;
+  service.onSendPR = async () => { calls++; return { snapshotId: 'fresh' }; };
+  const handlers = new Map();
+  const codebolt = new Proxy({}, { get: (_, name) => callback => handlers.set(name, callback) });
+  service.getEventHandlers = () => ({ onRawMessage: service.onRawMessage.bind(service) });
+  const filename = path.join(root, 'src/index.ts');
+  const mod = new Module(filename, module);
+  mod.require = name => {
+    if (name === '@codebolt/codeboltjs') return { __esModule: true, default: codebolt };
+    if (name === './services/E2bRemoteProviderService') return { E2bRemoteProviderService: class { constructor() { return service; } } };
+    throw new Error(`Unexpected import: ${name}`);
+  };
+  mod._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
+  }).outputText, filename);
+  service.agentServer.isConnected = false;
+  await Promise.all([handlers.get('onRawMessage')({ type: 'providerSendPR' }), handlers.get('onSendPR')()]);
+  assert.equal(calls, 1);
+  assert.equal(service.forwarded.length, 0);
+});
+
+function narrativeReview(t, { snapshot = 'fresh', exported = 'fresh', bytes = Buffer.from([0, 1, 255, 34]), size = bytes.length } = {}) {
+  const { service } = fixture();
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'e2b-review-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  service.lastInitVars = { syncMode: 'workspace_sync', snapshotId: 'original-base', narrativeContext: { agent_run_id: 'run-1' } };
+  service.state.environmentName = 'review-environment';
+  const requests = [], commands = [], downloads = [];
+  service.sendNarrativeRequest = async (type, payload) => {
+    requests.push({ type, ...payload });
+    return type === 'narrative.createSnapshot' ? { snapshot_id: snapshot } : {
+      snapshotId: exported, baseSnapshotId: null, bundlePath: "/tmp/review archive's.tar.gz", narrativeSummary: {},
+    };
+  };
+  service.sandbox = {
+    commands: { run: async (command, options) => { commands.push({ command, options }); return { stdout: String(size) }; } },
+    files: { read: async (filename, options) => {
+      downloads.push({ filename, options });
+      return new ReadableStream({ start(controller) {
+        for (let i = 0; i < bytes.length; i += 2) controller.enqueue(bytes.subarray(i, i + 2));
+        controller.close();
+      } });
+    } },
+  };
+  return { service, directory, bytes, requests, commands, downloads };
+}
+
+test('exports current workspace once with the original base and portable bytes', async t => {
+  const f = narrativeReview(t);
+  const [first, second] = await Promise.all([f.service.onSendPR(), f.service.onSendPR()]);
+  assert.deepEqual(first, second);
+  assert.equal(f.requests.length, 2);
+  assert.equal(f.requests[1].snapshotId, 'fresh');
+  assert.equal(f.requests[1].baseSnapshotId, 'original-base');
+  assert.equal(first.baseSnapshotId, 'original-base');
+  assert.equal(first.mergeConfig.workspaceSync.snapshotId, 'fresh');
+  assert.equal(first.snapshotId, 'fresh');
+  assert.deepEqual(Buffer.from(first.bundleData, 'base64'), f.bytes);
+  assert.equal(first.narrativeContext.agent_run_id, 'run-1');
+  assert.equal(f.downloads[0].options.format, 'stream');
+  assert.ok(f.downloads[0].options.streamIdleTimeoutMs > 0);
+  assert.ok(!f.commands.some(({command}) => command.includes('base64')));
+  assert.equal(first.bundlePath, undefined);
+});
+
+test('refuses to substitute an old startup snapshot for a failed fresh snapshot', async t => {
+  const f = narrativeReview(t, { snapshot: undefined });
+  // An explicitly absent response must not use the fixture default.
+  f.service.sendNarrativeRequest = async type => { f.requests.push(type); return {}; };
+  await assert.rejects(f.service.onSendPR(), /Fresh workspace snapshot/);
+  assert.deepEqual(f.requests, ['narrative.createSnapshot']);
+  assert.equal(f.downloads.length, 0);
+});
+
+test('refuses a bundle for a different snapshot', async t => {
+  const f = narrativeReview(t, { exported: 'old-snapshot' });
+  await assert.rejects(f.service.onSendPR(), /does not match the fresh/);
+  assert.equal(f.downloads.length, 0);
+});
+
+test('does not publish truncated downloads and preserves an existing destination', async t => {
+  const f = narrativeReview(t, { size: 500 });
+  const target = path.join(f.directory, 'bundle.tar.gz');
+  fs.writeFileSync(target, 'previous');
+  await assert.rejects(f.service.downloadFileFromSandbox('/tmp/archive.tar.gz', target), /size mismatch/);
+  assert.equal(fs.readFileSync(target, 'utf8'), 'previous');
+  assert.deepEqual(fs.readdirSync(f.directory), ['bundle.tar.gz']);
+});
+
+// Persisted environments can still carry the old GitHub review configuration.
+// All of them must return portable narrative data without requiring a Git remote.
+for (const config of [
+  {},
+  { syncMode: 'git' },
+  { syncMode: 'workspace_sync' },
+  { syncMode: 'git', rmrSourceType: 'git', gitTransport: 'github_pr' },
+]) {
+  test(`uses narrative review export for ${JSON.stringify(config)}`, async t => {
+    const f = narrativeReview(t);
+    Object.assign(f.service.lastInitVars, config);
+    // The helper's default should not override the unspecified-mode case.
+    if (!config.syncMode) delete f.service.lastInitVars.syncMode;
+    const result = await f.service.onSendPR();
+    assert.equal(result.rmrSourceType, 'workspace_sync');
+    assert.equal(result.mergeConfig.strategy, 'workspace_sync');
+    assert.equal(result.externalPrUrl, undefined);
+    assert.equal(result.mergeConfig.git, undefined);
+    assert.deepEqual(f.requests.map(request => request.type), [
+      'narrative.createSnapshot', 'narrative.exportUnifiedBundle',
+    ]);
+    assert.ok(f.commands.every(({command}) => !/\bgit\b|github/.test(command)));
+    const preview = f.service.getProspectivePath({ ...config, projectName: 'review' });
+    assert.equal(preview.rmrSourceType, 'workspace_sync');
+    assert.equal(preview.defaultRmrSourceType, 'workspace_sync');
+    assert.equal(preview.mergeStrategy, 'workspace_sync');
+    assert.deepEqual(preview.supportedRmrSourceTypes, ['workspace_sync']);
+    assert.equal(preview.rmrPolicy.createsExternalPullRequest, false);
+  });
+}
+
+test('manifests advertise narrative review independently of initial Git sync', () => {
+  for (const manifest of ['providers.yaml', 'codeboltprovider.yaml']) {
+    const content = fs.readFileSync(path.join(root, manifest), 'utf8');
+    assert.match(content, /defaultRmrSourceType: workspace_sync/);
+    assert.doesNotMatch(content, /github_pr/);
+    assert.match(content, /syncModes:\n    - git\n    - workspace_sync/);
+    assert.match(content, /rmrSourceTypes:\n    - workspace_sync/);
+  }
+});
+
+// The API request ID correlates startup; params.messageId identifies the user
+// message already stored by the host and must survive the sandbox round trip.
+for (const location of ['body', 'envelope', 'wrapper']) {
+  test(`preserves the host message ID from the ${location}`, async () => {
+    const { service, socket } = fixture();
+    const input = turn();
+    if (location === 'body') input.message.messageId = 'host-user-message';
+    else input.messageId = 'host-user-message';
+    await service.onProviderAgentStart(location === 'wrapper' ? { userMessage: input } : input);
+    assert.equal(socket.sent.length, 1);
+    assert.equal(socket.sent[0].params.messageId, 'host-user-message');
+    assert.equal(socket.sent[0].message.messageId, 'host-user-message');
+    assert.notEqual(socket.sent[0].requestId, 'host-user-message');
+  });
+}
+
+test('does not forward the SDK-owned providerAgentStart request through the raw hook', async () => {
+  const { service, socket } = fixture();
+  const input = turn();
+  input.message.messageId = 'first-user-message';
+  await Promise.all([
+    service.onRawMessage({ type: 'providerAgentStart', userMessage: input }),
+    service.onProviderAgentStart(input),
+  ]);
+  assert.equal(socket.sent.length, 1);
+  assert.equal(socket.sent[0].type, 'threadEvent');
+  assert.equal(socket.sent[0].params.messageId, 'first-user-message');
+});
+
+test('keeps separate turns with identical text as distinct user messages', async () => {
+  const { service, socket } = fixture();
+  for (const messageId of ['first-user-message', 'second-user-message']) {
+    const input = turn(); input.message.messageId = messageId;
+    await service.onProviderAgentStart(input);
+  }
+  assert.equal(socket.sent.length, 2);
+  assert.deepEqual(socket.sent.map(request => request.params.messageId), ['first-user-message', 'second-user-message']);
 });

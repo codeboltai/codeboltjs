@@ -12,6 +12,7 @@ export function prepareSandboxChatMessage(input: Record<string, any>, workspaceP
     projectPath: workspacePath,
     ...(threadId ? { threadId } : {}),
     userMessage: body.userMessage || body.text || envelope.text || '',
+    messageId: body.messageId || envelope.messageId || input.messageId || randomUUID(),
     selectedAgent: body.selectedAgent || envelope.selectedAgent,
     reuseThreadId: Boolean(threadId),
     executionMode: 'background_scoped',

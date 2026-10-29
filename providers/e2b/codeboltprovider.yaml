@@ -24,10 +24,7 @@ capabilities:
     - git
     - workspace_sync
   mergeStrategies:
-    - git
     - workspace_sync
   rmrSourceTypes:
-    - git
     - workspace_sync
-  defaultRmrSourceType: git
-  gitTransport: github_pr
+  defaultRmrSourceType: workspace_sync
